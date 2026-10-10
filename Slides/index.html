@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="it" ondragstart='return false' onselectstart='return false'>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="icon" type="image/png" href="../FileInclude/immagini/icon.png">
+        <link href="../FileInclude/CascadingStyleSheet/Presentazione.css" rel="stylesheet" type="text/css">
+        <script type="text/javascript" src="../FileInclude/Javascript/JavaScript.js"></script>
+        <title> Samuele Cieri - indice </title>
+    </head>
+    <body id="index">
+
+        <form>
+            <input id="myInput" placeholder="Some text.." value="">
+            <input type="submit" id="myBtn" value="Submit">
+        </form>
+        
+        <script>
+            var input = document.getElementById("myInput");
+            input.addEventListener("keyup", function(event) {
+                if (event.keyCode === 13) {
+                    event.preventDefault();
+                    document.getElementById("myBtn").click();
+                    window.location.replace("Presentazione.html");
+                }
+            });
+        </script>
+
+        <div class="container">
+
+            ok
+
+        </div>
+
+    </body>
+</html>

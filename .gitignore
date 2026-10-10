@@ -1,0 +1,7 @@
+.DS_Store
+
+# School paperwork, scanned forms and the original database exports: kept
+# locally only. What the project needs lives in docs/ and db/.
+Bureaucracy/
+MySql_import/
+istruzioni/

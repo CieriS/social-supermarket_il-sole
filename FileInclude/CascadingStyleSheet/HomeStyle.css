@@ -1,0 +1,62 @@
+Body {
+
+    border: 0;
+    padding: 0;
+    font-size: 1vw;
+    width: 100%;
+    height: 100%;
+    background-color: whitesmoke;
+    cursor: pointer;
+    overflow: hidden;
+
+}
+
+div.btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    text-align: center;
+    transform: translate(-50%,50%);
+    font-size: 3.5vw;
+}
+
+span.Buttons{
+    margin: 0 2vw;
+    border: 4px solid black;
+    padding: 1.0vw 1.5vw;
+    border-radius: 4px;
+}
+
+div.accedi {
+    position: absolute;
+    top: 2vw;
+    right: 2.5vw;
+}
+
+a{
+    text-decoration: none;
+    text-transform: capitalize;  
+    color: black; 
+}
+
+a#login {
+
+    text-decoration: none;
+    text-transform: capitalize;
+    color: white;
+    font-size: 2vw;
+    cursor: pointer;
+    font-weight: 1000;
+    -webkit-text-stroke: 0.44px rgb(0, 0, 0);
+    text-shadow: 0 2px black, 0 2px black, 0 2px black, 0 2px black;
+
+}
+
+a#login:active {
+
+    -webkit-text-stroke: 1px rgb(0, 0, 0);
+    text-shadow: 0 0 black, 0 0 black, 0 0 black, 0 0 black;
+    transition: 50ms;
+
+}
