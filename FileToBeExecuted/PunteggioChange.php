@@ -35,6 +35,13 @@
                     require('../FileInclude/FileRequired/Functions.php');
                     require(__DIR__ . '/../src/Scoring.php');
                     require(__DIR__ . '/../src/ApplicationForm.php');
+                    require(__DIR__ . '/../src/Rules.php');
+                    require(__DIR__ . '/../src/AssessmentFields.php');
+                    /*————*/
+
+                    /* Punti della griglia configurati */
+                        $risRegole=mysqli_query($connection,"SELECT Chiave, Punti FROM RegolePunteggio") OR DIE(mysqli_error($connection));
+                        $RegolePunteggio=\IlSole\Rules\rulesFromRows(mysqli_fetch_all($risRegole,MYSQLI_ASSOC));
                 /*————*/
 
                 /* Metodo Postback */
@@ -227,7 +234,8 @@
                                 $Punteggi=\IlSole\Scoring\scoreApplication(
                                     \IlSole\Form\applicationFromForm($_REQUEST),
                                     $IndicatoriISEE,
-                                    new DateTimeImmutable('today')
+                                    new DateTimeImmutable('today'),
+                                    $RegolePunteggio
                                 );
                             } catch ( InvalidArgumentException $Errore ) {
                                 ?>
@@ -273,6 +281,13 @@
 
                                         echo $insertPunteggio."<br/>";
                                         $risultatoPunteggio=mysqli_query($connection,$insertPunteggio) OR DIE(mysqli_error($connection));
+
+                            /* Voci della griglia valutate dall'operatore */
+                                $Valutazione=\IlSole\Form\assessmentFromForm($_REQUEST);
+                                $salvaValutazione=mysqli_prepare($connection,"REPLACE INTO ValutazioneGriglia (CodFamiglia, InvaliditaTotaleAdulti, InvaliditaGraveAdulti, InvaliditaGraveMinori, AltriDebiti, AltriContributi) VALUES (?, ?, ?, ?, ?, ?)");
+                                mysqli_stmt_bind_param($salvaValutazione,"siiiii",$CodiceFiscale,$Valutazione['InvaliditaTotaleAdulti'],$Valutazione['InvaliditaGraveAdulti'],$Valutazione['InvaliditaGraveMinori'],$Valutazione['AltriDebiti'],$Valutazione['AltriContributi']);
+                                mysqli_stmt_execute($salvaValutazione);
+                            /*————*/
                                         
                                     /*————*/
 
@@ -1072,6 +1087,14 @@
                                 </tr>
 
                             </table> 
+
+                            <?php
+                                $leggiValutazione=mysqli_prepare($connection,"SELECT * FROM ValutazioneGriglia WHERE CodFamiglia = ?");
+                                mysqli_stmt_bind_param($leggiValutazione,"s",$RichiedenteSession);
+                                mysqli_stmt_execute($leggiValutazione);
+                                $ValutazioneSalvata=mysqli_fetch_assoc(mysqli_stmt_get_result($leggiValutazione)) ?? [];
+                                echo \IlSole\Form\assessmentFieldsHtml($ValutazioneSalvata, $RegolePunteggio);
+                            ?>
 
                             <h3><span Class="underline">VALUTAZIONI DELLA COMMISSIONE</span></h3>   
 

@@ -13,6 +13,9 @@ namespace IlSole\Form;
 
 use function IlSole\Scoring\parseDate;
 
+use const IlSole\Scoring\DISABILITY_SEVERE;
+use const IlSole\Scoring\DISABILITY_TOTAL;
+
 /* Rows of the "situazione socio-sanitaria" table of the form */
 const EVENT_SEIZURE = 6;
 const EVENT_ARREARS = 7;
@@ -58,10 +61,27 @@ function databaseDate(mixed $value): string
     return $date === null ? '' : $date->format('Y-m-d');
 }
 
-/*
-    Disabilities, "other debts" and "other contributions" are not asked by the
-    form yet, so they are left out and score nothing.
-*/
+/* The fields of the "griglia di valutazione" section of the form, as stored in ValutazioneGriglia */
+const ASSESSMENT_FIELDS = [
+    'InvaliditaTotaleAdulti',
+    'InvaliditaGraveAdulti',
+    'InvaliditaGraveMinori',
+    'AltriDebiti',
+    'AltriContributi',
+];
+
+/* Whole numbers from 0 up; anything else (missing, text, negative) is 0 */
+function assessmentFromForm(array $form): array
+{
+    $assessment = [];
+    foreach (ASSESSMENT_FIELDS as $field) {
+        $value = $form[$field] ?? '';
+        $value = is_int($value) ? (string) $value : $value;
+        $assessment[$field] = is_string($value) && ctype_digit(trim($value)) ? (int) trim($value) : 0;
+    }
+    return $assessment;
+}
+
 function applicationFromForm(array $form): array
 {
     $housing = $form['TipoDiAlloggio'] ?? '';
@@ -76,22 +96,32 @@ function applicationFromForm(array $form): array
         ];
     }
 
+    $assessment = assessmentFromForm($form);
+    $disabilities = array_merge(
+        array_fill(0, $assessment['InvaliditaTotaleAdulti'], ['severity' => DISABILITY_TOTAL]),
+        array_fill(0, $assessment['InvaliditaGraveAdulti'], ['severity' => DISABILITY_SEVERE]),
+        array_fill(0, $assessment['InvaliditaGraveMinori'], ['severity' => DISABILITY_SEVERE, 'minor' => true]),
+    );
+
     $isee = $form['IndiceISEE'] ?? 0;
 
     return [
         'isee' => is_numeric($isee) ? (float) $isee : 0.0,
         'members' => $members,
+        'disabilities' => $disabilities,
         'debts' => [
             'seizure' => filled($form, 'Anno', EVENT_SEIZURE),
             'arrears' => filled($form, 'Anno', EVENT_ARREARS),
             'eviction' => filled($form, 'Anno', EVENT_EVICTION_NOTICE)
                 || filled($form, 'Anno', EVENT_EVICTION_IMMINENT)
                 || $housing === HOUSING_EMERGENCY,
+            'other' => $assessment['AltriDebiti'],
         ],
         'benefits' => [
             'publicHousing' => $housing === HOUSING_PUBLIC,
             'incomeSupport' => positive($form, 'ValoreENT', INCOME_SUPPORT),
             'careAllowance' => positive($form, 'ValoreENT', INCOME_CARE_ALLOWANCE),
+            'other' => $assessment['AltriContributi'],
         ],
     ];
 }
