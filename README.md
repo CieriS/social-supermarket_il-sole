@@ -46,11 +46,11 @@ The login page is pre-filled with the demo administrator account.
 | `index.php`         | Login                                                |
 | `FileToBeExecuted/` | One PHP page per feature                             |
 | `FileInclude/`      | Shared PHP includes, stylesheets, scripts and images |
-| `src/`              | Scoring rules and form reading, as pure functions    |
+| `src/`              | Scoring, rules and form reading, as pure functions   |
 | `tests/`            | Unit tests (PHPUnit)                                 |
 | `db/`               | Schema and demo data loaded on first start           |
 | `docs/`             | Evaluation grid and E/R diagrams                     |
-| `scripts/`          | Smoke test: every page, plus one application         |
+| `scripts/`          | Smoke test: every page, applications, configuration  |
 
 ## Scoring
 
@@ -76,15 +76,24 @@ Where the grid can be read in more than one way, this is the reading taken:
 From the form, debts are read from the events of the social and health table
 that have a year (seizure, arrears, eviction notice or imminent eviction) and
 from emergency housing; benefits from public housing and from the income rows
-for care allowances and income support.
+for care allowances and income support. The lines that cannot be worked out
+from the rest of the form are asked in its "Griglia di valutazione" section:
+how many adults have a total or a severe disability, how many minors a severe
+one, the points for other debts and for other contributions.
+
+The points of every line are stored in the `RegolePunteggio` table and edited
+from the configuration page ([src/Rules.php](src/Rules.php) checks what is
+typed there). A change applies to the applications entered from then on:
+stored scores are not recalculated.
 
 ## Status
 
 The application runs as it was handed in. Known gaps, in the order they are
 being addressed:
 
-1. The form does not ask for disabilities, other debts and other
-   contributions yet, so those lines of the grid score nothing.
+1. Saving an update of an application does not work: the form only shows the
+   rows already stored and the queries overwrite every row of the family.
+   It was unfinished in 2021 and goes away with gap 3.
 2. Queries are built by string concatenation, passwords are hashed with MD5 and
    some pages skip the login check: not safe to expose as is.
 3. The new/update application pages duplicate each other and mix scoring, SQL
