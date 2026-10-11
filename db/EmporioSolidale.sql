@@ -1209,6 +1209,57 @@ ALTER TABLE `TesseraRilasciata`
 --
 ALTER TABLE `Uscite`
   ADD CONSTRAINT `uscite_ibfk_1` FOREIGN KEY (`CodFamiglia`) REFERENCES `Richiedente` (`Cod_Fiscale`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Punti della griglia di valutazione, modificabili dalla configurazione
+--
+
+CREATE TABLE `RegolePunteggio` (
+  `Chiave` varchar(50) NOT NULL,
+  `Punti` int(11) NOT NULL,
+  PRIMARY KEY (`Chiave`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `RegolePunteggio` (`Chiave`, `Punti`) VALUES
+('minors_one_adult', 15),
+('minors_more_adults', 10),
+('minors_each_other', 4),
+('unemployed_adult', 10),
+('semi_employed_adult', 5),
+('single_parent_unemployed', 10),
+('both_parents_unemployed', 10),
+('one_parent_of_two_unemployed', 5),
+('other_adults', 5),
+('disability_total_in_household', 10),
+('disability_total_alone', 20),
+('disability_severe_adult_in_household', 5),
+('disability_severe_adult_alone', 10),
+('disability_severe_minor', 10),
+('debt_seizure', 5),
+('debt_arrears', 5),
+('debt_eviction', 10),
+('debt_other_min', 2),
+('debt_other_max', 10),
+('benefit_public_housing', 10),
+('benefit_income_support', 10),
+('benefit_care_allowance', 10),
+('benefit_other_min', 2),
+('benefit_other_max', 5);
+
+--
+-- Voci della griglia valutate dall'operatore per ogni domanda
+--
+
+CREATE TABLE `ValutazioneGriglia` (
+  `CodFamiglia` char(16) NOT NULL,
+  `InvaliditaTotaleAdulti` int(11) NOT NULL DEFAULT 0,
+  `InvaliditaGraveAdulti` int(11) NOT NULL DEFAULT 0,
+  `InvaliditaGraveMinori` int(11) NOT NULL DEFAULT 0,
+  `AltriDebiti` int(11) NOT NULL DEFAULT 0,
+  `AltriContributi` int(11) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`CodFamiglia`),
+  CONSTRAINT `valutazionegriglia_ibfk_1` FOREIGN KEY (`CodFamiglia`) REFERENCES `Richiedente` (`Cod_Fiscale`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

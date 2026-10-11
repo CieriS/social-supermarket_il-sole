@@ -18,6 +18,8 @@
                 require('../FileInclude/FileRequired/NavBars.php');
                 require('../FileInclude/FileRequired/Cookie.php');
                 require('../FileInclude/FileRequired/Functions.php');
+                require(__DIR__ . '/../src/Scoring.php');
+                require(__DIR__ . '/../src/Rules.php');
             /*————*/
 
             if($_POST){
@@ -55,6 +57,20 @@
                     $ValorePunti=$_REQUEST['ValorePunti'];
                 /*————*/
 
+                /* Punti della griglia: si salva solo se sono tutti validi */
+                    try {
+                        $RegolePunteggio=\IlSole\Rules\rulesFromForm($_REQUEST['Regola'] ?? null);
+                    } catch ( InvalidArgumentException $Errore ) {
+                        ?>
+                            <script>
+                                alert(<?php echo json_encode("Configurazione non salvata\n".$Errore->getMessage(), JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>);
+                                window.location.replace("Config.php");
+                            </script>
+                        <?php
+                        DIE();
+                    }
+                /*————*/
+
                 /* Esecuzione Update */
 
                     /* Update Mesi di Stallo */
@@ -81,6 +97,14 @@
                             WHERE N = ".$i.";";
 
                             $RisultatoPntMen=mysqli_query($connection,$UpdatePntMen) OR DIE(mysqli_error($connection));
+                        }
+                    /*————*/
+
+                    /* Update RegolePunteggio (punti della griglia) */
+                        $salvaRegola=mysqli_prepare($connection,"INSERT INTO RegolePunteggio (Chiave, Punti) VALUES (?, ?) ON DUPLICATE KEY UPDATE Punti = VALUES(Punti)");
+                        foreach ( $RegolePunteggio as $Chiave => $PuntiRegola ) {
+                            mysqli_stmt_bind_param($salvaRegola,"si",$Chiave,$PuntiRegola);
+                            mysqli_stmt_execute($salvaRegola);
                         }
                     /*————*/
 
@@ -170,6 +194,20 @@
                             echo "<th><input type='number' name='ValoreEuro[$i]' value='".$RigaPntMensile['ValoreEuro']."' required/></th>";
                             echo "<th><input type='number' name='ValorePunti[$i]' value='".$RigaPntMensile['ValorePunti']."' required/></th></tr>";
                             $i++;
+                        }
+
+                        /*———— Punti della griglia ————*/
+                        $risRegole=mysqli_query($connection,"SELECT Chiave, Punti FROM RegolePunteggio") OR DIE(mysqli_error($connection));
+                        $RegolePunteggio=\IlSole\Rules\rulesFromRows(mysqli_fetch_all($risRegole,MYSQLI_ASSOC));
+
+                        echo "<tr><th Class='LightBlue' colspan='3'>Griglia Di Valutazione</th></tr>";
+                        echo "<tr><th Class='Orangino' colspan='3'>Punti assegnati ad ogni voce (valgono per le domande inserite o modificate da ora in poi)</th></tr>";
+                        foreach ( \IlSole\Rules\ruleLabels() as $Sezione => $Voci ) {
+                            echo "<tr><th Class='Orangino' colspan='3'>".htmlspecialchars($Sezione)."</th></tr>";
+                            foreach ( $Voci as $Chiave => $Etichetta ) {
+                                echo "<tr><th colspan='2'>".htmlspecialchars($Etichetta)."</th>";
+                                echo "<th><input type='number' min='0' step='1' name='Regola[$Chiave]' value='".$RegolePunteggio[$Chiave]."' required/></th></tr>";
+                            }
                         }
 
                         /*———— input submit ————*/

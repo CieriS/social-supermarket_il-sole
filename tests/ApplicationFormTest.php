@@ -79,9 +79,9 @@ final class ApplicationFormTest extends TestCase
     {
         $application = applicationFromForm([]);
 
-        self::assertSame(['seizure' => false, 'arrears' => false, 'eviction' => false], $application['debts']);
+        self::assertSame(['seizure' => false, 'arrears' => false, 'eviction' => false, 'other' => 0], $application['debts']);
         self::assertSame(
-            ['publicHousing' => false, 'incomeSupport' => false, 'careAllowance' => false],
+            ['publicHousing' => false, 'incomeSupport' => false, 'careAllowance' => false, 'other' => 0],
             $application['benefits']
         );
     }
@@ -90,7 +90,7 @@ final class ApplicationFormTest extends TestCase
     {
         $application = applicationFromForm(['Anno' => array_fill(1, 12, ''), 'DocAll' => array_fill(1, 12, '')]);
 
-        self::assertSame(['seizure' => false, 'arrears' => false, 'eviction' => false], $application['debts']);
+        self::assertSame(['seizure' => false, 'arrears' => false, 'eviction' => false, 'other' => 0], $application['debts']);
     }
 
     #[DataProvider('debtEvents')]
@@ -125,7 +125,7 @@ final class ApplicationFormTest extends TestCase
             'ValoreENT' => [1 => '1200', 3 => '500', 5 => '0.01'],
         ])['benefits'];
 
-        self::assertSame(['publicHousing' => true, 'incomeSupport' => true, 'careAllowance' => true], $benefits);
+        self::assertSame(['publicHousing' => true, 'incomeSupport' => true, 'careAllowance' => true, 'other' => 0], $benefits);
     }
 
     public function testEmptyZeroOrTextIncomesAreNotBenefits(): void
