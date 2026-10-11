@@ -1,10 +1,5 @@
 <?php
-    $Host="localhost";
-    $User="root";
-    $Password="";
-    $DataBaseName="EmporioSolidale";
-
-    $connection=MYSQLI_CONNECT($Host,$User,$Password,$DataBaseName) OR DIE ("Error 104: " . MYSQLI_CONNECT_ERROR($connection));
+    require('../FileInclude/FileRequired/Connessione.php');
 
 
     $query="SELECT * FROM Export;";

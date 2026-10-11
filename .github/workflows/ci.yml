@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Start the stack
+        run: docker compose up -d --build --wait
+      - name: Lint
+        run: docker compose exec -T web sh -c 'find . -name "*.php" -print0 | xargs -0 -n1 php -l > /dev/null'
+      - name: Smoke test
+        run: ./scripts/smoke.sh
+      - name: Logs
+        if: failure()
+        run: docker compose logs
