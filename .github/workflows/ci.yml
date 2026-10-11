@@ -15,8 +15,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Start the stack
         run: docker compose up -d --build --wait
+      - name: Install the development dependencies
+        run: docker compose exec -T web composer install --no-interaction --no-progress
       - name: Lint
-        run: docker compose exec -T web sh -c 'find . -name "*.php" -print0 | xargs -0 -n1 php -l > /dev/null'
+        run: docker compose exec -T web sh -c 'find . -name "*.php" -not -path "./vendor/*" -print0 | xargs -0 -n1 php -l > /dev/null'
+      - name: Unit tests
+        run: docker compose exec -T web vendor/bin/phpunit
       - name: Smoke test
         run: ./scripts/smoke.sh
       - name: Logs
