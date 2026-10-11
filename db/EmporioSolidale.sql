@@ -63,7 +63,7 @@ CREATE TABLE `competenzeview` (
 ,`NomeCognome` varchar(60)
 ,`LuogoNascita` varchar(30)
 ,`DataNascita` varchar(10)
-,`Parentela` varchar(10)
+,`Parentela` varchar(20)
 ,`Occupazione` varchar(20)
 ,`TitoloDiStudio` varchar(20)
 ,`Competenze` varchar(20)
@@ -279,7 +279,7 @@ CREATE TABLE `informazionimembri` (
 ,`NomeCognome` varchar(60)
 ,`LuogoNascita` varchar(30)
 ,`DataNascita` varchar(10)
-,`Parentela` varchar(10)
+,`Parentela` varchar(20)
 ,`Occupazione` varchar(20)
 ,`TitoloDiStudio` varchar(20)
 ,`Competenze` varchar(20)
@@ -397,7 +397,7 @@ CREATE TABLE `Membri` (
   `NomeCognome` varchar(60) DEFAULT NULL,
   `LuogoNascita` varchar(30) DEFAULT NULL,
   `DataNascita` date DEFAULT NULL,
-  `Parentela` varchar(10) NOT NULL,
+  `Parentela` varchar(20) NOT NULL,
   `Occupazione` varchar(20) DEFAULT NULL,
   `TitoloDiStudio` varchar(20) DEFAULT NULL,
   `Competenze` varchar(20) DEFAULT NULL,
