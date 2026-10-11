@@ -5,3 +5,7 @@
 Bureaucracy/
 MySql_import/
 istruzioni/
+
+# Development dependencies and caches
+vendor/
+.phpunit.cache/

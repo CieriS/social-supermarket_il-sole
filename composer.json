@@ -1,0 +1,16 @@
+{
+    "name": "cieris/social-supermarket-il-sole",
+    "description": "Ranking of the families applying to the Il Sole social supermarket",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.3",
+        "ext-mysqli": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}

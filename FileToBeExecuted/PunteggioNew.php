@@ -33,6 +33,8 @@
                     require('../FileInclude/FileRequired/Connessione.php');
                     require('../FileInclude/FileRequired/NavBars.php');
                     require('../FileInclude/FileRequired/Functions.php');
+                    require(__DIR__ . '/../src/Scoring.php');
+                    require(__DIR__ . '/../src/ApplicationForm.php');
                 /*————*/
 
                 /* Metodo Postback */
@@ -44,7 +46,7 @@
                             $CognomeRichiedente=ucwords(strtolower($_REQUEST['CognomeRichiedente']));
                             $NomeRichiedente=ucwords(strtolower($_REQUEST['NomeRichiedente']));
                             $LuogoNascitaRichiedente=ucwords(strtolower($_REQUEST['LuogoNascitaRichiedente']));
-                            $DataNascitaRichiedente=DATE("Y-m-d",strtotime($_REQUEST['DataNascitaRichiedente']));
+                            $DataNascitaRichiedente=\IlSole\Form\databaseDate($_REQUEST['DataNascitaRichiedente']);
                             $Cittadinanza=ucwords(strtolower($_REQUEST['Cittadinanza']));
                             if( $_REQUEST['InItaliaDallAnno'] != "" ){
                                 $InItaliaDallAnno=$_REQUEST['InItaliaDallAnno'];
@@ -131,15 +133,6 @@
                             }
                         /*————*/
 
-                        /* √ Contatori √ */
-                            $ContatoreMaggiorenni=1; /* Parte da uno perchè il richiedente è sicuramente maggiorenne */
-                            $ContatoreMinorenni=0;
-                            $cPadre=0;
-                            $cMadre=0;
-                            $cSemiDisoccupati=0;
-                            $cDisoccupati=0;
-                        /*————*/
-
                         /* √ Varibili Generalità membri nucleo familiare √ */
 
                             $NomeMembroLavoratore=array_map('ucwords',array_map('strtolower',$_REQUEST['NomeMembroLavoratore']));
@@ -153,98 +146,17 @@
                                 if( isset($_REQUEST["DataNascita"]) ) {
                                     $DataNascitaMembro=$_REQUEST['DataNascita'];
 
-                                    $Oggi=DATE('d/m/Y');
-
-                                    $cD=DATE('d');
-                                    $cM=DATE('m');
-                                    $cY=DATE('Y');
-
                                     foreach ( $DataNascitaMembro as $ind => $val ) {
-                                        $DataNascitaMembro[$ind]=DATE("Y-m-d",strtotime($val));
-
-                                        $nD=date('d', strtotime($DataNascitaMembro[$ind]));
-                                        $nM=date('m', strtotime($DataNascitaMembro[$ind]));
-                                        $nY=date('Y', strtotime($DataNascitaMembro[$ind]));
-
-                                        if( ($cY-$nY) >= 18 ){
-                                            if( ($cY-$nY) > 18 ){
-                                                $ContatoreMaggiorenni++;
-                                            }
-                                            if( ($cY-$nY) == 18 ){
-                                                if( $nM <= $cM ){
-                                                    if( $nM < $cM ){
-                                                        $ContatoreMaggiorenni++;
-                                                    }
-                                                    if( $nM == $cM ){
-                                                        if( $nD <= $cD ){
-                                                            $ContatoreMaggiorenni++;
-                                                        }
-                                                        else
-                                                        {
-                                                            $ContatoreMinorenni++;
-                                                        }
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    $ContatoreMinorenni++;
-                                                }
-                                            }
-                                        }
-                                        else {
-                                            $ContatoreMinorenni++;
-                                        }
+                                        $DataNascitaMembro[$ind]=\IlSole\Form\databaseDate($val);
                                     }
 
                                 }
                                 if( isset($_REQUEST["Parentela"]) ) {
                                     $ParentelaMembro=array_map('ucwords',array_map('strtolower',$_REQUEST['Parentela']));
 
-                                    for( $i=1; $i <= $nMembri; $i++ ) {
-                                        if( $ParentelaMembro[$i] == "Capofamiglia" ){
-                                            $cPadre++;
-                                        }
-                                        if( $ParentelaMembro[$i] == "Coniuge" ){
-                                            $cMadre++;
-                                        }
-                                    }
                                 }
                                 if( isset($_REQUEST["Occupazione"]) ) {
-                                    for( $i=1; $i <= $nMembri; $i++ ) {
-                                        $OccupazioneMembro=array_map('ucwords',array_map('strtolower',$_REQUEST['Occupazione']));
-                                        if( $OccupazioneMembro[$i] == "Disoccupato" ){
-                                            $cDisoccupati++;
-                                            if( $ParentelaMembro[$i] == "Capofamiglia" ){
-                                                $PadreDisoccupato=TRUE;
-                                            }
-                                            else
-                                            {
-                                                $PadreDisoccupato=FALSE;
-                                            }
-                                            if( $ParentelaMembro[$i] == "Coniuge" ){
-                                                $MadreDisoccupata=TRUE;
-                                            }
-                                            {
-                                                $MadreDisoccupata=FALSE;
-                                            }
-                                        }
-                                        if( $OccupazioneMembro[$i] == "Semioccupato" ){
-                                            $cSemiDisoccupati++;
-                                            if( $ParentelaMembro[$i] == "Capofamiglia" ){
-                                                $PadreSemiDisoccupato=TRUE;
-                                            }
-                                            else
-                                            {
-                                                $PadreSemiDisoccupato=FALSE;
-                                            }
-                                            if( $ParentelaMembro[$i] == "Coniuge" ){
-                                                $MadreSemiDisoccupata=TRUE;
-                                            }
-                                            {
-                                                $MadreSemiDisoccupata=FALSE;
-                                            }
-                                        }
-                                    }
+                                    $OccupazioneMembro=array_map('ucwords',array_map('strtolower',$_REQUEST['Occupazione']));
                                 }
                                 if( isset($_REQUEST["TitoloDiStudio"]) ) {
                                     $TitoloDiStudio=array_map('ucwords',array_map('strtolower',$_REQUEST['TitoloDiStudio']));
@@ -298,12 +210,6 @@
 
                         /* √ Variabili Punteggi √ */
                             $ISEE=$_REQUEST['IndiceISEE'];
-                            $PunteggioPresenzaMinori=0;
-                            $PunteggioDisoccupazione=0;
-                            $PunteggioInvalidi=0;
-                            $PunteggioSituazioneDebitoria=0;
-                            $PunteggioBenefit=0;
-                            $PunteggioTotale=0;
                         /*————*/
 
                         /* √ Variabili domande finali e valutazione √ */
@@ -313,154 +219,33 @@
                             $ValutazioneCommissione=$_REQUEST['ValutCommissione'];
                         /*————*/
 
-                        /* Calcolo Punteggi */
+                        /* Calcolo Punteggi: le regole della griglia sono in src/Scoring.php */
+                            $risindISEE=mysqli_query($connection,"SELECT ISEEmin, ISEEmax, Punteggio FROM IndicatoriISEE") OR DIE(mysqli_error($connection));
+                            $IndicatoriISEE=mysqli_fetch_all($risindISEE,MYSQLI_ASSOC);
 
-                            /*———— Dati Dal Database ————*/
-                                /* Indicatori ISEE */
-                                    $indISEE="SELECT * 
-                                    FROM IndicatoriISEE";
+                            try {
+                                $Punteggi=\IlSole\Scoring\scoreApplication(
+                                    \IlSole\Form\applicationFromForm($_REQUEST),
+                                    $IndicatoriISEE,
+                                    new DateTimeImmutable('today')
+                                );
+                            } catch ( InvalidArgumentException $Errore ) {
+                                ?>
+                                    <script>
+                                        alert("I dati inseriti non permettono di calcolare il punteggio\nControllare le date di nascita e l'indicatore ISEE");
+                                        window.location.replace("Domanda.php");
+                                    </script>
+                                <?php
+                                DIE();
+                            }
 
-                                    $risindISEE=mysqli_query($connection,$indISEE) OR DIE(mysqli_error($connection));
-
-                                    $i=1;
-                                    while( $RigaIndISEE=mysqli_fetch_array($risindISEE,MYSQLI_ASSOC) ) {
-                                        $ISEEmin[$i]=$RigaIndISEE['ISEEmin'];
-                                        $ISEEmax[$i]=$RigaIndISEE['ISEEmax'];
-                                        $Punti[$i]=$RigaIndISEE['Punteggio'];
-                                        $i++;
-                                    }
-                                /*————*/
-                                /* Presenza Minori */
-                                    $PresMin="";
-
-                                    $risPresMin="";
-                                /*————*/
-                                /* Disoccupazione */
-                                    $Disoc="";
-
-                                    $risDisoc="";
-                                /*————*/
-                                /* Invalidità, inabilità o Malattia Grave */
-                                    $Inval="";
-
-                                    $risInval="";
-                                /*————*/
-                                /* Situazione Debitoria */
-                                    $SitDeb="";
-
-                                    $risSitDeb="";
-                                /*————*/
-                                /* Benefit Da Dedurre */
-                                    $Benefit="";
-
-                                    $risBenefit="";
-                                /*————*/
-                            /*————*/
-
-                            /* √ Punteggio per indicatore ISEE (switch con riferimento a table nel database) √ */
-                                switch ($ISEE) {
-                                    case ($ISEE == 0):
-                                    $PunteggioISEE = $Punti[1];
-                                    break;
-                                    case ( $ISEE > $ISEEmin[1] && $ISEE <= $ISEEmax[1] ):
-                                    $PunteggioISEE = $Punti[1];
-                                    break;
-                                    case ( $ISEE >= $ISEEmin[2] && $ISEE <= $ISEEmax[2] ):
-                                    $PunteggioISEE = $Punti[2];
-                                    break;
-                                    case ( $ISEE >= $ISEEmin[3] && $ISEE <= $ISEEmax[3] ):
-                                    $PunteggioISEE = $Punti[3];
-                                    break;
-                                    case ( $ISEE >= $ISEEmin[4] && $ISEE <= $ISEEmax[4] ):
-                                    $PunteggioISEE = $Punti[4];
-                                    break;
-                                    case ( $ISEE >= $ISEEmin[5] && $ISEE <= $ISEEmax[5] ):
-                                    $PunteggioISEE = $Punti[5];
-                                    break;
-                                    default:
-                                    $PunteggioISEE = 0;
-                                }
-                            /*————*/
-
-                            /* √ Punteggio per presenza di minori (più di un adulto 10 punti altrimenti 15, in aggiunta 4 punti per ogni minore escluso il primo) √ */
-                                if( $ContatoreMinorenni >= 1 && $ContatoreMaggiorenni == 1 ){
-                                    $PunteggioPresenzaMinori = 15+(4*($ContatoreMinorenni-1));
-                                }
-                                if( $ContatoreMaggiorenni > 1 && $ContatoreMinorenni >= 1 ){
-                                    $PunteggioPresenzaMinori = 10+(4*($ContatoreMinorenni-1));
-                                }
-                            /*————*/
-
-                            /* √† Punteggio per disoccupazione †√ */
-
-                                $PunteggioDisoccupazione += (10*$cDisoccupati); /* 10 punti per ogni disoccupato */
-
-                                $PunteggioDisoccupazione += (5*$cSemiDisoccupati); /* 5 punti per ogni semidisoccupato */
-
-                                if( ($cPadre == 1 xor $cMadre == 1) && ($PadreDisoccupato xor $MadreDisoccupata) && ($ContatoreMinorenni >= 1) ){
-                                    $PunteggioDisoccupazione=$PunteggioDisoccupazione+10; /* 10 punti per 1 genitore solo */
-                                }
-                                if( (($cPadre == 1 && $cMadre == 1) || ($cPadre == 2 && $cMadre == 0) || ($cPadre == 0 && $cMadre == 2)) && ($PadreDisoccupato && $MadreDisoccupata) && ($ContatoreMinorenni >= 1) ){
-                                    $PunteggioDisoccupazione=$PunteggioDisoccupazione+10; /* 10 punti ci sono due genitori entrambi disoccupati e con figli minori */
-                                }
-                                if( (($cPadre == 1 && $cMadre == 1) || ($cPadre == 2 && $cMadre == 0) || ($cPadre == 0 && $cMadre == 2)) && (($PadreDisoccupato xor $MadreDisoccupata) || ($PadreSemiDisoccupato xor $MadreSemiDisoccupata)) && ($ContatoreMinorenni >= 1) ){ /* X  */
-                                    $PunteggioDisoccupazione=$PunteggioDisoccupazione+5; /* Semi Occupazione? */
-                                }
-                                $nAdulti= $nMembri-$cPadre-$cMadre-$ContatoreMinorenni;
-                                if( $nAdulti > 0 ){ /* Assegno punteggio per ogni altro adulto a carico  */
-                                    $PunteggioDisoccupazione=$PunteggioDisoccupazione+(5*( $nMembri-$cPadre-$cMadre-$ContatoreMinorenni));
-                                }
-                            /*————*/
-
-                            /* √† Punteggio per invalidità, inabilità o malattia grave †√ */
-                                
-                            /*————*/
-
-                            /* √ Punteggio per situazione debitoria √ */
-                                if ( isset($AnnoSSS[6]) ) {
-                                    $PunteggioDisoccupazione += 5;
-                                }
-                                if ( isset($AnnoSSS[7]) ) {
-                                    $PunteggioDisoccupazione += 5;
-                                }
-                                if ( isset($AnnoSSS[9]) || isset($AnnoSSS[9]) || isset($AnnoSSS[10]) ) {
-                                    $PunteggioDisoccupazione += 10;
-                                }
-                                if ( isset($AnnoSSS[11]) || isset($AnnoSSS[12]) ) {
-                                    $PunteggioDisoccupazione += 10;
-                                }
-                            /*————*/
-
-                            /* √ Punteggio da dedurre per benefit √ */
-                                if( $Alloggio == "Popolare" ){
-                                    $PunteggioBenefit -= 10;
-                                }
-                                if( $ValEntrate[4] > 0 ){
-                                    $PunteggioBenefit -= 10;
-                                }
-                                if( $ValEntrate[2] > 0 ){
-                                    $PunteggioBenefit -= 10;
-                                }
-                                if( $ValEntrate[3] > 0 ){
-                                    if( $ValEntrate[3] < 1000 ){
-                                        $PunteggioBenefit -= 2;
-                                    }
-                                    if( $ValEntrate[3] < 2000 ){
-                                        $PunteggioBenefit -= 3;
-                                    }
-                                    if( $ValEntrate[3] < 3000 ){
-                                        $PunteggioBenefit -= 4;
-                                    }
-                                    if( $ValEntrate[3] < 4000 ){
-                                        $PunteggioBenefit -= 5;
-                                    }
-                                }
-                            /*————*/
-
-                            /* √ Punteggio Totale √ */
-                                $PunteggioTotale=$PunteggioISEE+$PunteggioPresenzaMinori+$PunteggioDisoccupazione+$PunteggioInvalidi+$PunteggioSituazioneDebitoria+$PunteggioBenefit;
-                            /*————*/
-
+                            $PunteggioISEE=$Punteggi['PunteggioISEE'];
+                            $PunteggioPresenzaMinori=$Punteggi['PunteggioPresenzaMinori'];
+                            $PunteggioDisoccupazione=$Punteggi['PunteggioDisoccupazione'];
+                            $PunteggioInvalidi=$Punteggi['PunteggioInvalidi'];
+                            $PunteggioSituazioneDebitoria=$Punteggi['PunteggioSituazioneDebitoria'];
+                            $PunteggioBenefit=$Punteggi['PunteggioBenefit'];
+                            $PunteggioTotale=$Punteggi['PunteggioTotale'];
                         /*————*/
 
                         /* √ Scrittura √ */
