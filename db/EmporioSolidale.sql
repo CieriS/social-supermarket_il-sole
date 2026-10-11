@@ -170,12 +170,12 @@ CREATE TABLE `export` (
 ,`Cittadinanza` varchar(15)
 ,`LuogoNascita` varchar(30)
 ,`DataNascita` date
-,`TipoAlloggio` varchar(18)
+,`TipoAlloggio` varchar(30)
 ,`Residenza` varchar(30)
 ,`Via` varchar(30)
 ,`nMembri` int(2)
 ,`Telefono` varchar(15)
-,`Mail` varchar(30)
+,`Mail` varchar(100)
 ,`PunteggioISEE` int(11)
 ,`PunteggioPresenzaMinori` int(11)
 ,`PunteggioDisoccupazione` int(11)
@@ -202,7 +202,7 @@ CREATE TABLE `graduatoria` (
 ,`Nome` varchar(30)
 ,`nMembri` int(2)
 ,`Telefono` varchar(15)
-,`Mail` varchar(30)
+,`Mail` varchar(100)
 ,`PunteggioISEE` int(11)
 ,`PunteggioPresenzaMinori` int(11)
 ,`PunteggioDisoccupazione` int(11)
@@ -335,11 +335,11 @@ CREATE TABLE `informazionirichiedente` (
 ,`InItaliaDallAnno` year(4)
 ,`Residenza` varchar(30)
 ,`Via` varchar(30)
-,`TipoAlloggio` varchar(18)
+,`TipoAlloggio` varchar(30)
 ,`DocumentoIdent` char(9)
 ,`DocumentoImmig` char(10)
 ,`Telefono` varchar(15)
-,`Mail` varchar(30)
+,`Mail` varchar(100)
 ,`ServiziSociali` varchar(15)
 ,`ComeHaConosciutoEmporio` varchar(30)
 ,`nMembri` int(2)
@@ -616,11 +616,11 @@ CREATE TABLE `Richiedente` (
   `InItaliaDallAnno` year(4) DEFAULT NULL,
   `Residenza` varchar(30) NOT NULL,
   `Via` varchar(30) NOT NULL,
-  `TipoAlloggio` varchar(18) NOT NULL,
+  `TipoAlloggio` varchar(30) NOT NULL,
   `DocumentoIdent` char(9) DEFAULT NULL,
   `DocumentoImmig` char(10) DEFAULT NULL,
   `Telefono` varchar(15) NOT NULL,
-  `Mail` varchar(30) NOT NULL,
+  `Mail` varchar(100) NOT NULL,
   `ServiziSociali` varchar(15) NOT NULL,
   `ComeHaConosciutoEmporio` varchar(30) DEFAULT NULL,
   `nMembri` int(2) NOT NULL,
@@ -1257,6 +1257,7 @@ CREATE TABLE `ValutazioneGriglia` (
   `InvaliditaGraveMinori` int(11) NOT NULL DEFAULT 0,
   `AltriDebiti` int(11) NOT NULL DEFAULT 0,
   `AltriContributi` int(11) NOT NULL DEFAULT 0,
+  `NoteCommissione` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`CodFamiglia`),
   CONSTRAINT `valutazionegriglia_ibfk_1` FOREIGN KEY (`CodFamiglia`) REFERENCES `Richiedente` (`Cod_Fiscale`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
