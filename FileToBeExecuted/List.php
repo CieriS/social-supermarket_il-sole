@@ -153,7 +153,7 @@
                                         <?php
 
                                             $i=0;
-                                            while( $riga=mysqli_fetch_array($risultato,MYSQLI_ASSOC) ) {
+                                            while( $riga=\IlSole\Html\escapeRow(mysqli_fetch_array($risultato,MYSQLI_ASSOC)) ) {
 
                                                 /*
                                                 $Telefono="";

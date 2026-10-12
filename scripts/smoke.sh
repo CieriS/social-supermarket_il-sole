@@ -2,8 +2,9 @@
 # Checks that pages are closed without a login, logs in with the demo account
 # and opens every page, failing on HTTP errors or PHP fatal errors. Then submits a new
 # application (with mistakes, then right, then twice), changes a rule of the
-# grid in the configuration and submits an update, checking what ends up in
-# the database each time.
+# grid in the configuration, submits an update, runs a shopping card through
+# its life and removes the applicant, checking what ends up in the database
+# each time. Along the way it tries a few forged requests.
 # PHP warnings are reported but tolerated unless STRICT=1.
 set -euo pipefail
 
@@ -15,6 +16,8 @@ failed=0
 
 user="${SMOKE_USER:-emporiosolidale}"
 password="${SMOKE_PASSWORD:-IlSole}"
+
+sql() { docker compose exec -T db mariadb -N -uroot -pdev EmporioSolidale -e "$1"; }
 
 report() {
     printf '%-46s %s\n' "$1" "$2"
@@ -46,6 +49,21 @@ code="$(curl -sS -b "$tmp/jar" -o /dev/null -w '%{http_code}' "$base/FileToBeExe
 [ "$code" = 302 ] || status="FAIL logged in with a wrong password"
 report "login with a wrong password" "$status"
 
+# After five wrong passwords even the right one is refused, for a while.
+sql 'DELETE FROM TentativiAccesso'
+status=ok
+for _ in 1 2 3 4 5; do
+    csrf="$(form_token index.php)"
+    curl -sS -b "$tmp/jar" -c "$tmp/jar" -o /dev/null --data-urlencode "csrf=$csrf" \
+        --data-urlencode "username=$user" --data-urlencode 'psw=not-the-password' "$base/index.php"
+done
+csrf="$(form_token index.php)"
+code="$(curl -sS -b "$tmp/jar" -c "$tmp/jar" -o "$tmp/body" -w '%{http_code}' --data-urlencode "csrf=$csrf" \
+    --data-urlencode "username=$user" --data-urlencode "psw=$password" "$base/index.php")"
+[ "$code" = 200 ] && grep -q 'Troppi tentativi' "$tmp/body" || status="FAIL right password after five wrong ones answered $code"
+sql 'DELETE FROM TentativiAccesso'
+report "login after too many wrong passwords" "$status"
+
 status=ok
 code="$(curl -sS -b "$tmp/jar" -o /dev/null -w '%{http_code}' \
     --data-urlencode "username=$user" --data-urlencode "psw=$password" "$base/index.php")"
@@ -75,10 +93,10 @@ for page in index.php home.html FileToBeExecuted/*.php; do
 done
 
 tax_code=SMKTST80A01A944Z
-sql() { docker compose exec -T db mariadb -N -uroot -pdev EmporioSolidale -e "$1"; }
 # shellcheck disable=SC2329  # invoked by the trap
 cleanup() {
     sql "DELETE FROM Richiedente WHERE Cod_Fiscale='$tax_code';
+         DELETE FROM Tessera WHERE Codice='SMOKECARD001';
          UPDATE RegolePunteggio SET Punti=10 WHERE Chiave='minors_more_adults'" || true
     rm -rf "$tmp"
 }
@@ -242,5 +260,82 @@ stored="$(sql "SELECT CONCAT_WS(' ', R.ISEE, (SELECT COUNT(*) FROM Entrate WHERE
 [ "$stored" = '4000 1 1' ] || status="FAIL applicant and rows stored '$stored', expected '4000 1 1'"
 printf '%-46s %s\n' "updated rows" "$status"
 [ "$status" = ok ] || failed=1
+
+# post <page> field=value ...: sends a form of the session to a page.
+post() {
+    local page="$1" field args=(--data-urlencode "csrf=$csrf")
+    shift
+    for field in "$@"; do args+=(--data-urlencode "$field"); done
+    curl -sS -b "$tmp/jar" -o "$tmp/body" "${args[@]}" "$base/FileToBeExecuted/$page"
+}
+no_php_error() {
+    if grep -qE '<b>(Fatal error|Parse error)</b>' "$tmp/body"; then
+        status="FAIL $(grep -oE '<b>(Fatal error|Parse error)</b>:[^<]*' "$tmp/body" | head -1 | sed -E 's/<[^>]+>//g')"
+    fi
+}
+
+# Shopping cards: add one, assign it, look at the applicant, withdraw it, delete it.
+card=SMOKECARD001
+status=ok
+post HandlePass.php "Codice=$card"
+[ "$(sql "SELECT COUNT(*) FROM Tessera WHERE Codice='$card'")" = 1 ] || status="FAIL card not added"
+no_php_error
+report "card added" "$status"
+
+status=ok
+post Pass.php "Cod_Fiscale=$tax_code" "CodiceTessera=$card" Assegna=Assegna
+stored="$(sql "SELECT CONCAT_WS(' ', (SELECT COUNT(*) FROM TesseraRilasciata WHERE CodFamiglia='$tax_code' AND CodiceTessera='$card' AND DataOraScadenzaTessera > DataOraRilascioTessera), (SELECT COUNT(*) FROM StoricoTessere WHERE CodFamiglia='$tax_code' AND CodiceTessera='$card' AND DataRitiro IS NULL))")"
+[ "$stored" = '1 1' ] || status="FAIL assignment and history stored '$stored', expected '1 1'"
+no_php_error
+report "card assigned" "$status"
+
+status=ok
+post InformazioniRichiedente.php "Cod_Fiscale=$tax_code" Visualizza=Visualizza
+grep -q 'Smoke' "$tmp/body" && grep -q 'Via Esempio 2' "$tmp/body" && grep -q 'Smoke Test' "$tmp/body" || status="FAIL applicant, address or members not shown"
+no_php_error
+report "applicant details" "$status"
+
+status=ok
+post PassRetire.php "Cod_Fiscale=$tax_code" Ritira=Ritira
+stored="$(sql "SELECT CONCAT_WS(' ', (SELECT COUNT(*) FROM TesseraRilasciata WHERE CodFamiglia='$tax_code'), (SELECT COUNT(*) FROM StoricoTessere WHERE CodFamiglia='$tax_code' AND DataRitiro IS NOT NULL), (SELECT COUNT(*) FROM Richiedente WHERE Cod_Fiscale='$tax_code' AND DataOraStalloTessera >= DataOraRitiroTessera))")"
+[ "$stored" = '0 1 1' ] || status="FAIL card, history and applicant stored '$stored', expected '0 1 1'"
+no_php_error
+report "card withdrawn" "$status"
+
+status=ok
+post HandlePass.php "Elimina=$card"
+[ "$(sql "SELECT COUNT(*) FROM Tessera WHERE Codice='$card'")" = 0 ] || status="FAIL card not deleted"
+no_php_error
+report "card deleted" "$status"
+
+# Text typed in a form is shown as text, not as markup.
+submit_application 'Domanda Di Modifica' 'CognomeRichiedente=<i>Smoke</i>' 'Nome[1]=<script>alert(1)</script>'
+status=ok
+for page in List.php SkillsList.php StrikeOut.php Pass.php; do
+    curl -sS -b "$tmp/jar" -o "$tmp/body" "$base/FileToBeExecuted/$page"
+    if grep -qiE '<i>smoke</i>|<script>alert\(1\)' "$tmp/body"; then status="FAIL markup from the database printed by $page"; fi
+done
+curl -sS -b "$tmp/jar" -o "$tmp/body" "$base/FileToBeExecuted/List.php"
+grep -qi '&lt;i&gt;smoke&lt;/i&gt;' "$tmp/body" || status="FAIL escaped surname not shown in the ranking"
+post InformazioniRichiedente.php "Cod_Fiscale=$tax_code" Visualizza=Visualizza
+if grep -qiE '<i>smoke</i>|<script>alert\(1\)' "$tmp/body"; then status="FAIL markup printed by the applicant details"; fi
+report "markup in the data is escaped" "$status"
+
+# Removing an applicant: a wildcard or a piece of SQL removes nobody.
+applicants="$(sql 'SELECT COUNT(*) FROM Richiedente')"
+status=ok
+for attack in '%' "x' OR '1'='1" "$tax_code' OR '1'='1"; do
+    post StrikeOut.php "Cod_Fiscale=$attack" Elimina=Elimina
+    [ "$(sql 'SELECT COUNT(*) FROM Richiedente')" = "$applicants" ] || status="FAIL '$attack' removed applicants"
+    no_php_error
+done
+report "removal with a forged code" "$status"
+
+status=ok
+post StrikeOut.php "Cod_Fiscale=$tax_code" Elimina=Elimina
+[ "$(sql 'SELECT COUNT(*) FROM Richiedente')" = "$((applicants - 1))" ] || status="FAIL applicant not removed"
+[ "$(sql "SELECT COUNT(*) FROM Membri WHERE CodFamiglia='$tax_code'")" = 0 ] || status="FAIL members left behind"
+no_php_error
+report "applicant removed" "$status"
 
 exit "$failed"

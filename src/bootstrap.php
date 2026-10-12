@@ -8,6 +8,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/Html.php';
+require_once __DIR__ . '/Input.php';
 require_once __DIR__ . '/Auth.php';
 require __DIR__ . '/../FileInclude/FileRequired/Connessione.php';
 

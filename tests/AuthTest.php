@@ -8,8 +8,10 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 use function IlSole\Auth\csrfMatches;
+use function IlSole\Auth\isLockedOut;
 use function IlSole\Auth\sessionIsValid;
 
+use const IlSole\Auth\FAILURE_WINDOW;
 use const IlSole\Auth\SESSION_TTL;
 
 final class AuthTest extends TestCase
@@ -54,6 +56,27 @@ final class AuthTest extends TestCase
             'token sent as a list' => [['csrf' => 'abc123'], ['abc123'], false],
             'session without a token' => [[], 'abc123', false],
             'both empty' => [['csrf' => ''], '', false],
+        ];
+    }
+
+    #[DataProvider('failures')]
+    public function testIsLockedOut(array $secondsAgo, bool $expected): void
+    {
+        $failures = array_map(fn (int $seconds) => self::NOW - $seconds, $secondsAgo);
+
+        self::assertSame($expected, isLockedOut($failures, self::NOW));
+    }
+
+    public static function failures(): array
+    {
+        return [
+            'no failures' => [[], false],
+            'four recent' => [[1, 2, 3, 4], false],
+            'five recent' => [[1, 2, 3, 4, 5], true],
+            'five, one just out of the window' => [[1, 2, 3, 4, FAILURE_WINDOW], false],
+            'five, the oldest still inside' => [[1, 2, 3, 4, FAILURE_WINDOW - 1], true],
+            'many old ones' => [array_fill(0, 20, FAILURE_WINDOW + 60), false],
+            'times in the future are ignored' => [[-10, -20, -30, -40, -50], false],
         ];
     }
 }

@@ -30,13 +30,14 @@
                         /*————*/
 
                         /* RICEZIONE RADIO BUTTON */
-                            $Cod_Fiscale=$_REQUEST['Cod_Fiscale'];
+                            $Cod_Fiscale=\IlSole\Input\taxCode($_POST['Cod_Fiscale'] ?? '');
                         /*————*/
 
                         /* Select */
 
                             /* Select e Esecuzione Select Richiedente, Punteggio e tessere */
-                                $queryRichiedente="SELECT * FROM informazioniRichiedente WHERE Cod_Fiscale LIKE '".$Cod_Fiscale."'";
+                                $queryRichiedente="SELECT * FROM informazioniRichiedente WHERE Cod_Fiscale = ?";
+                                $queryRichiedenteParametri=[$Cod_Fiscale];
                                 /* SELECT R.Cod_Fiscale, R.Cognome, R.Nome, R.LuogoNascita, DATE_FORMAT(R.DataNascita, '%d/%m/%Y') AS DataNascita, R.Cittadinanza, R.InItaliaDallAnno, R.Residenza, R.Via, R.TipoAlloggio, R.DocumentoIdent, R.DocumentoImmig, R.Telefono, R.Mail, R.ServiziSociali, R.ComeHaConosciutoEmporio, R.nMembri, R.ISEE, TR.CodiceTessera, DATE_FORMAT(TR.DataOraRilascioTessera, '%d/%m/%Y') AS DataOraRilascioTessera, DATE_FORMAT(TR.DataOraScadenzaTessera, '%d/%m/%Y') AS DataOraScadenzaTessera, DATE_FORMAT(R.DataOraRitiroTessera, '%d/%m/%Y') AS DataOraRitiroTessera, DATE_FORMAT(R.DataOraStalloTessera, '%d/%m/%Y') AS DataOraStalloTessera, P.PunteggioISEE, P.PunteggioPresenzaMinori, P.PunteggioDisoccupazione, P.PunteggioInvalidi, P.PunteggioSituazioneDebitoria, P.PunteggioBenefit, P.PunteggioTotale 
                                 FROM Richiedente AS R LEFT OUTER JOIN TesseraRilasciata AS TR 
                                 ON R.Cod_Fiscale = TR.CodFamiglia 
@@ -46,70 +47,77 @@
                                 ON R.Cod_Fiscale = P.CodFamiglia 
                                 ORDER BY P.PunteggioTotale DESC; */
 
-                                $risultatoRichiedente=mysqli_query($connection,$queryRichiedente) OR DIE(mysqli_error($connection));
+                                $risultatoRichiedente=mysqli_execute_query($connection,$queryRichiedente,$queryRichiedenteParametri) OR DIE(mysqli_error($connection));
                             /*————*/
 
                             /* Select e Esecuzione Select Membri */
                                 $queryMembri="SELECT * FROM informazioniMembri 
-                                WHERE CodFamiglia LIKE '".$Cod_Fiscale."';";
+                                WHERE CodFamiglia = ?;";
+                                $queryMembriParametri=[$Cod_Fiscale];
                                 /* SELECT nMembro, NomeCognome, LuogoNascita, DATE_FORMAT(DataNascita, '%d/%m/%Y') AS DataNascita, Parentela, Occupazione, TitoloDiStudio, Competenze, ConoscenzaLingua, Patente, AttualeAtt, Presso, Termine, SenzaLavoroDa, CodFamiglia 
                                 FROM Membri; */
 
-                                $risultatoMembri=mysqli_query($connection,$queryMembri) OR DIE(mysqli_error($connection));
+                                $risultatoMembri=mysqli_execute_query($connection,$queryMembri,$queryMembriParametri) OR DIE(mysqli_error($connection));
                             /*————*/
 
                             /* Select e Esecuzione Select Disponibilità Collaborative */
                                 $queryDisp="SELECT * FROM informazioniDispColl 
-                                WHERE CodFamiglia LIKE '".$Cod_Fiscale."';";
+                                WHERE CodFamiglia = ?;";
+                                $queryDispParametri=[$Cod_Fiscale];
                                 /* SELECT AmbitoFormativo, AmbitoLavorativo, AmbitoSociale, CodFamiglia 
                                 FROM DispCollaborative; */
 
-                                $risultatoDisp=mysqli_query($connection,$queryDisp) OR DIE(mysqli_error($connection));
+                                $risultatoDisp=mysqli_execute_query($connection,$queryDisp,$queryDispParametri) OR DIE(mysqli_error($connection));
                             /*————*/
 
                             /* Select e Esecuzione Select Situazione Socio Sanitaria */
                                 $querySSS="SELECT * FROM informazioniSSS  
-                                WHERE CodFamiglia LIKE '".$Cod_Fiscale."';";
+                                WHERE CodFamiglia = ?;";
+                                $querySSSParametri=[$Cod_Fiscale];
                                 /* SELECT N, Evento, Anno, DocAll, CodFamiglia 
                                 FROM SituazioneSocioSanitaria; */
 
-                                $risultatoSSS=mysqli_query($connection,$querySSS) OR DIE(mysqli_error($connection));
+                                $risultatoSSS=mysqli_execute_query($connection,$querySSS,$querySSSParametri) OR DIE(mysqli_error($connection));
                             /*————*/
 
                             /* Select e Esecuzione Select Patrimonio Attivo */
                                 $queryPatrAtt="SELECT * FROM PatrAtt 
-                                WHERE CodFamiglia LIKE '".$Cod_Fiscale."';";
+                                WHERE CodFamiglia = ?;";
+                                $queryPatrAttParametri=[$Cod_Fiscale];
                                 /* SELECT N, Elemento, Valore, CodFamiglia 
                                 FROM PatrAtt; */
 
-                                $risultatoPatrAtt=mysqli_query($connection,$queryPatrAtt) OR DIE(mysqli_error($connection));
+                                $risultatoPatrAtt=mysqli_execute_query($connection,$queryPatrAtt,$queryPatrAttParametri) OR DIE(mysqli_error($connection));
                             /*————*/
 
                             /* Select e Esecuzione Select Patrimonio Passivo */
                                 $queryPatrPass="SELECT * FROM PatrPass 
-                                WHERE CodFamiglia LIKE '".$Cod_Fiscale."';";
+                                WHERE CodFamiglia = ?;";
+                                $queryPatrPassParametri=[$Cod_Fiscale];
                                 /* SELECT N, Elemento, Valore, DATE_FORMAT(Scadenza, '%d/%m/%Y') AS Scadenza, CodFamiglia 
                                 FROM PatrPass; */
 
-                                $risultatoPatrPass=mysqli_query($connection,$queryPatrPass) OR DIE(mysqli_error($connection));
+                                $risultatoPatrPass=mysqli_execute_query($connection,$queryPatrPass,$queryPatrPassParametri) OR DIE(mysqli_error($connection));
                             /*————*/
 
                             /* Select e Esecuzione Select Entrate */
                                 $queryEnt="SELECT * FROM Entrate 
-                                WHERE CodFamiglia LIKE '".$Cod_Fiscale."';";
+                                WHERE CodFamiglia = ?;";
+                                $queryEntParametri=[$Cod_Fiscale];
                                 /* SELECT N, Elemento, Valore, DATE_FORMAT(Scadenza, '%d/%m/%Y') AS Scadenza, CodFamiglia 
                                 FROM Entrate; */
 
-                                $risultatoEnt=mysqli_query($connection,$queryEnt) OR DIE(mysqli_error($connection));
+                                $risultatoEnt=mysqli_execute_query($connection,$queryEnt,$queryEntParametri) OR DIE(mysqli_error($connection));
                             /*————*/
 
                             /* Select e Esecuzione Select Uscite */
                                 $queryUsc="SELECT * FROM Uscite 
-                                WHERE CodFamiglia LIKE '".$Cod_Fiscale."';";
+                                WHERE CodFamiglia = ?;";
+                                $queryUscParametri=[$Cod_Fiscale];
                                 /* SELECT N, Elemento, Valore, DATE_FORMAT(Scadenza, '%d/%m/%Y') AS Scadenza, CodFamiglia 
                                 FROM Uscite; */
 
-                                $risultatoUsc=mysqli_query($connection,$queryUsc) OR DIE(mysqli_error($connection));
+                                $risultatoUsc=mysqli_execute_query($connection,$queryUsc,$queryUscParametri) OR DIE(mysqli_error($connection));
                             /*————*/
 
                         /*————*/
@@ -149,7 +157,7 @@
                                             echo "<th class='LightBlue'>Numero Membri</th>";
                                             echo "<th class='LightBlue'>ISEE</th>";
                                         echo "</tr>";
-                                        while( $Richiedente=mysqli_fetch_array($risultatoRichiedente,MYSQLI_ASSOC) ) {
+                                        while( $Richiedente=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoRichiedente,MYSQLI_ASSOC)) ) {
                                             echo "<tr>";
                                                 echo "<th>".$Richiedente['Cod_Fiscale']."</th>";
                                                 echo "<th>".$Richiedente['Cognome']."</th>";
@@ -198,7 +206,7 @@
                                             echo "<th class='LightBlue'>Termine</th>";
                                             echo "<th class='LightBlue'>SenzaLavoroDa</th>";
                                         echo "</tr>";
-                                            while( $Membri=mysqli_fetch_array($risultatoMembri,MYSQLI_ASSOC) ) {
+                                            while( $Membri=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoMembri,MYSQLI_ASSOC)) ) {
                                                 echo "<tr>";
                                                     echo "<th>".$Membri['nMembro']."</th>";
                                                     echo "<th>".$Membri['NomeCognome']."</th>";
@@ -232,7 +240,7 @@
                                             echo "<th class='LightBlue'>Anno</th>";
                                             echo "<th class='LightBlue'>DocAll</th>";
                                         echo "</tr>";
-                                        while( $SSS=mysqli_fetch_array($risultatoSSS,MYSQLI_ASSOC) ) {
+                                        while( $SSS=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoSSS,MYSQLI_ASSOC)) ) {
                                             echo "<tr>";
                                                 echo "<th>".$SSS['N']."</th>";
                                                 echo "<th>".$SSS['Evento']."</th>";
@@ -255,7 +263,7 @@
                                             echo "<th class='LightBlue'>Lavorativo</th>";
                                             echo "<th class='LightBlue'>Sociale</th>";
                                         echo "</tr>";
-                                        while( $DispColl=mysqli_fetch_array($risultatoDisp,MYSQLI_ASSOC) ) {
+                                        while( $DispColl=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoDisp,MYSQLI_ASSOC)) ) {
                                             echo "<tr>";
                                                 echo "<th>".$DispColl['AmbitoFormativo']."</th>";
                                                 echo "<th>".$DispColl['AmbitoLavorativo']."</th>";
@@ -265,7 +273,7 @@
                                     echo "</table>";
                                     /*echo "<table class='' border='4'>";
                                         echo "<tr><th class='major' colspan='4'>Disponibilit&agrave; Collaborative</th></tr>";
-                                        while( $DispColl=mysqli_fetch_array($risultatoDisp,MYSQLI_ASSOC) ) {
+                                        while( $DispColl=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoDisp,MYSQLI_ASSOC)) ) {
                                             echo "<tr>";
                                                 echo "<th class='LightBlue'>Formativo</th><th>".$DispColl['AmbitoFormativo']."</th>";
                                             echo "</tr>";
@@ -291,7 +299,7 @@
                                             echo "<th class='LightBlue'>Elemento</th>";
                                             echo "<th class='LightBlue'>Valore</th>";
                                         echo "</tr>";
-                                        while( $PatrAtt=mysqli_fetch_array($risultatoPatrAtt,MYSQLI_ASSOC) ) {
+                                        while( $PatrAtt=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoPatrAtt,MYSQLI_ASSOC)) ) {
                                             echo "<tr>";
                                                 echo "<th>".$PatrAtt['N']."</th>";
                                                 echo "<th>".$PatrAtt['Elemento']."</th>";
@@ -314,7 +322,7 @@
                                             echo "<th class='LightBlue'>Valore</th>";
                                             echo "<th class='LightBlue'>Scadenza</th>";
                                         echo "</tr>";
-                                        while( $PatrPass=mysqli_fetch_array($risultatoPatrPass,MYSQLI_ASSOC) ) {
+                                        while( $PatrPass=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoPatrPass,MYSQLI_ASSOC)) ) {
                                             echo "<tr>";
                                                 echo "<th>".$PatrPass['N']."</th>";
                                                 echo "<th>".$PatrPass['Elemento']."</th>";
@@ -338,7 +346,7 @@
                                             echo "<th class='LightBlue'>Valore</th>";
                                             echo "<th class='LightBlue'>Scadenza</th>";
                                         echo "</tr>";
-                                        while( $Ent=mysqli_fetch_array($risultatoEnt,MYSQLI_ASSOC) ) {
+                                        while( $Ent=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoEnt,MYSQLI_ASSOC)) ) {
                                             echo "<tr>";
                                                 echo "<th>".$Ent['N']."</th>";
                                                 echo "<th>".$Ent['Elemento']."</th>";
@@ -362,7 +370,7 @@
                                             echo "<th class='LightBlue'>Valore</th>";
                                             echo "<th class='LightBlue'>Scadenza</th>";
                                         echo "</tr>";
-                                        while( $Usc=mysqli_fetch_array($risultatoUsc,MYSQLI_ASSOC) ) {
+                                        while( $Usc=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoUsc,MYSQLI_ASSOC)) ) {
                                             echo "<tr>";
                                                 echo "<th>".$Usc['N']."</th>";
                                                 echo "<th>".$Usc['Elemento']."</th>";
@@ -545,7 +553,7 @@
                                                     <?php
 
                                                         $i=0;
-                                                        while($riga=mysqli_fetch_array($risultato,MYSQLI_ASSOC)) {
+                                                        while($riga=\IlSole\Html\escapeRow(mysqli_fetch_array($risultato,MYSQLI_ASSOC))) {
 
                                                             $i++;
                                                             /* echo "<tr>"; */

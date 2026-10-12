@@ -26,7 +26,7 @@
 
                 /* Ricezione Variabili */
 
-                    $nMesiStallo=$_REQUEST['nMesiStallo'];
+                    $nMesiStallo=\IlSole\Input\wholeNumber($_POST['nMesiStallo'] ?? '', 0, 120) ?? 0;
 
                     /* Gestione Credenziali: si cambiano solo se viene scritta una nuova password */
                         $NuovaPsw=(string) ($_POST['Psw'] ?? '');
@@ -85,28 +85,31 @@
 
                     /* Update Mesi di Stallo */
                         $UpdateMesiStallo="UPDATE Stallo 
-                        SET nMesiStallo = '".$nMesiStallo."';";
+                        SET nMesiStallo = ?;";
+                        $UpdateMesiStalloParametri=[$nMesiStallo];
 
-                        $RisultatoStallo=mysqli_query($connection,$UpdateMesiStallo) OR DIE(mysqli_error($connection));
+                        $RisultatoStallo=mysqli_execute_query($connection,$UpdateMesiStallo,$UpdateMesiStalloParametri) OR DIE(mysqli_error($connection));
                     /*————*/
 
                     /* Update IndicatoriISEE (ISEEmin, ISEEmax, Punteggio) */
                         for( $i=1;$i<=count($Punti);$i++ ) {
                             $UpdateIndISEE="UPDATE IndicatoriISEE 
-                            SET ISEEmin = '".$ISEEmin[$i]."', ISEEmax = '".$ISEEmax[$i]."', Punteggio = '".$Punti[$i]."' 
-                            WHERE N = ".$i.";";
+                            SET ISEEmin = ?, ISEEmax = ?, Punteggio = ? 
+                            WHERE N = ?;";
+                            $UpdateIndISEEParametri=[$ISEEmin[$i],$ISEEmax[$i],$Punti[$i],$i];
 
-                            $RisultatoIndISEE=mysqli_query($connection,$UpdateIndISEE);
+                            $RisultatoIndISEE=mysqli_execute_query($connection,$UpdateIndISEE,$UpdateIndISEEParametri);
                         }
                     /*————*/
 
                     /* Update PunteggioMensile (nComponenti, ValoreEuro, ValorePunti) */
                         for( $i=1;$i<=count($nComponenti);$i++ ) {             
                             $UpdatePntMen="UPDATE PunteggioMensile 
-                            SET nComponenti = '".$nComponenti[$i]."', ValoreEuro = '".$ValoreEuro[$i]."', ValorePunti = '".$ValorePunti[$i]."' 
-                            WHERE N = ".$i.";";
+                            SET nComponenti = ?, ValoreEuro = ?, ValorePunti = ? 
+                            WHERE N = ?;";
+                            $UpdatePntMenParametri=[$nComponenti[$i],$ValoreEuro[$i],$ValorePunti[$i],$i];
 
-                            $RisultatoPntMen=mysqli_query($connection,$UpdatePntMen) OR DIE(mysqli_error($connection));
+                            $RisultatoPntMen=mysqli_execute_query($connection,$UpdatePntMen,$UpdatePntMenParametri) OR DIE(mysqli_error($connection));
                         }
                     /*————*/
 
@@ -143,7 +146,7 @@
 
                         $RisultatoStallo=mysqli_query($connection,$MesiStallo) OR DIE(mysqli_error($connection));
 
-                        $nMesiStallo=mysqli_fetch_array($RisultatoStallo,MYSQLI_ASSOC);
+                        $nMesiStallo=\IlSole\Html\escapeRow(mysqli_fetch_array($RisultatoStallo,MYSQLI_ASSOC));
 
                         /*———— Cambia Credenziali ————*/
                         $Credenziali="SELECT * 
@@ -151,7 +154,7 @@
 
                         $RisultatoCredenziali=mysqli_query($connection,$Credenziali) OR DIE(mysqli_error($connection));
 
-                        $UsPsw=mysqli_fetch_array($RisultatoCredenziali,MYSQLI_ASSOC);
+                        $UsPsw=\IlSole\Html\escapeRow(mysqli_fetch_array($RisultatoCredenziali,MYSQLI_ASSOC));
 
                         /*———— Punteggio MENSILE ————*/
                         $PntMensile="SELECT * 
@@ -189,7 +192,7 @@
                         echo "<tr><th Class='LightBlue' colspan='3'>Indicatori ISEE</th></tr>";
                         echo "<tr><th Class='Orangino'>ISEE MIN</th><th Class='Orangino'>ISEE MAX</th><th Class='Orangino'>Punteggio</th></tr>";
                         $i=1;
-                        while( $RigaIndISEE=mysqli_fetch_array($RisultatoindISEE,MYSQLI_ASSOC) ) {
+                        while( $RigaIndISEE=\IlSole\Html\escapeRow(mysqli_fetch_array($RisultatoindISEE,MYSQLI_ASSOC)) ) {
                             echo "<tr><th><input type='number' name='ISEEmin[$i]' value='".$RigaIndISEE['ISEEmin']."' required/></th>";
                             echo "<th><input type='number' name='ISEEmax[$i]' value='".$RigaIndISEE['ISEEmax']."' required/></th>";
                             echo "<th><input type='number' name='Punteggio[$i]' value='".$RigaIndISEE['Punteggio']."' required/></th></tr>";
@@ -200,7 +203,7 @@
                         echo "<tr><th Class='LightBlue' colspan='3'>Punteggio Mensile</th></tr>";
                         echo "<tr><th Class='Orangino'>Numero Componenti Famiglia</th><th Class='Orangino'>&euro;</th><th Class='Orangino'>Valore in Punti</th></tr>";
                         $i=1;
-                        while( $RigaPntMensile=mysqli_fetch_array($RisultatoPntMensile,MYSQLI_ASSOC) ) {
+                        while( $RigaPntMensile=\IlSole\Html\escapeRow(mysqli_fetch_array($RisultatoPntMensile,MYSQLI_ASSOC)) ) {
                             echo "<tr><th><input type='number' name='nComponenti[$i]' value='".$RigaPntMensile['nComponenti']."' required/></th>";
                             echo "<th><input type='number' name='ValoreEuro[$i]' value='".$RigaPntMensile['ValoreEuro']."' required/></th>";
                             echo "<th><input type='number' name='ValorePunti[$i]' value='".$RigaPntMensile['ValorePunti']."' required/></th></tr>";

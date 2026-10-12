@@ -26,7 +26,7 @@
 
                             if( isset($_REQUEST['CodiceTessera']) ){
 
-                                $CodiceTessera=$_REQUEST['CodiceTessera'];
+                                $CodiceTessera=\IlSole\Input\cardCode($_POST['CodiceTessera']);
                                 $_SESSION['CodiceTessera']=$CodiceTessera;
 
                             } else {
@@ -42,7 +42,7 @@
                         /*————*/
 
                         /* RICEZIONE VARIABILI */
-                            $CodiceFiscale=$_REQUEST['Cod_Fiscale'];
+                            $CodiceFiscale=\IlSole\Input\taxCode($_POST['Cod_Fiscale'] ?? '');
                             $_SESSION['CodiceFiscale']=$CodiceFiscale;
                         /*————*/
 
@@ -52,7 +52,8 @@
 
                             $CalcoloDataStallo="SELECT * 
                             FROM Confirmation 
-                            WHERE Cod_Fiscale LIKE '".$CodiceFiscale."';";
+                            WHERE Cod_Fiscale = ?;";
+                            $CalcoloDataStalloParametri=[$CodiceFiscale];
                             /* SELECT R.Cod_Fiscale, R.Cognome, R.Nome, R.nMembri, P.PunteggioISEE, P.PunteggioPresenzaMinori, P.PunteggioDisoccupazione, P.PunteggioInvalidi, P.PunteggioSituazioneDebitoria, P.PunteggioBenefit, P.PunteggioTotale, TR.CodiceTessera, DATE_FORMAT(TR.DataOraRilascioTessera, '%Y/%m/%d') AS DataOraRilascioTessera, DATE_FORMAT(TR.DataOraScadenzaTessera, '%Y/%m/%d') AS DataOraScadenzaTessera, DATE_FORMAT(R.DataOraRitiroTessera, '%Y/%m/%d') AS DataOraRitiroTessera, DATE_FORMAT(R.DataOraStalloTessera, '%Y/%m/%d') AS DataOraStalloTessera  
                             FROM Richiedente AS R LEFT OUTER JOIN TesseraRilasciata AS TR 
                             ON R.Cod_Fiscale = TR.CodFamiglia 
@@ -67,18 +68,18 @@
                         /* Ricalcolo Stallo e setting var */
                             $RicalcoloStallo=mysqli_query($connection,$stallo) OR DIE(mysqli_error($connection));
 
-                            $nMesiStallo=mysqli_fetch_array($RicalcoloStallo,MYSQLI_ASSOC) OR DIE(mysqli_error($connection));
+                            $nMesiStallo=\IlSole\Html\escapeRow(mysqli_fetch_array($RicalcoloStallo,MYSQLI_ASSOC)) OR DIE(mysqli_error($connection));
                             
-                            $RicalcoloDataStallo=mysqli_query($connection,$CalcoloDataStallo) OR DIE(mysqli_error($connection));
+                            $RicalcoloDataStallo=mysqli_execute_query($connection,$CalcoloDataStallo,$CalcoloDataStalloParametri) OR DIE(mysqli_error($connection));
 
-                            $DataStallo=mysqli_fetch_array($RicalcoloDataStallo,MYSQLI_ASSOC) OR DIE(mysqli_error($connection));
+                            $DataStallo=\IlSole\Html\escapeRow(mysqli_fetch_array($RicalcoloDataStallo,MYSQLI_ASSOC)) OR DIE(mysqli_error($connection));
                         /*————*/
 
                         /* Controllo che la tessera non sia già in uso o sia nel periodo si stallo */
                             $controllo="SELECT * FROM Pass";
                             $Ris=mysqli_query($connection,$controllo) OR DIE(mysqli_error($connection));
-                            $RisCF=mysqli_query($connection,$CalcoloDataStallo) OR DIE(mysqli_error($connection));
-                            while( $riga=mysqli_fetch_array($Ris,MYSQLI_ASSOC) ){
+                            $RisCF=mysqli_execute_query($connection,$CalcoloDataStallo,$CalcoloDataStalloParametri) OR DIE(mysqli_error($connection));
+                            while( $riga=\IlSole\Html\escapeRow(mysqli_fetch_array($Ris,MYSQLI_ASSOC)) ){
                                 if( $riga['CodiceTessera'] == $CodiceTessera ){
                                     ?>
                                         <script>
@@ -89,7 +90,7 @@
                                     DIE();
                                 }
                             }
-                            while( $riga=mysqli_fetch_array($RisCF,MYSQLI_ASSOC) ){
+                            while( $riga=\IlSole\Html\escapeRow(mysqli_fetch_array($RisCF,MYSQLI_ASSOC)) ){
                                     if( $riga['CodiceTessera'] == NULL && $riga['DataOraRilascioTessera'] == NULL && $riga['DataOraScadenzaTessera'] == NULL && $riga['DataOraRitiroTessera'] != NULL && $riga['DataOraStalloTessera'] != NULL ){
 
                                         $OggiSecondi=DATE('Y/m/d');
@@ -113,36 +114,42 @@
                                         }
 
                                         $inserTessera="UPDATE TesseraRilasciata 
-                                        SET CodiceTessera = '".$CodiceTessera."', DataOraRilascioTessera = NOW(), DataOraScadenzaTessera = (NOW()+INTERVAL '".$nMesiStallo['nMesiStallo']."' MONTH), 
-                                        WHERE CodFamiglia = '".$CodiceFiscale."';";
+                                        SET CodiceTessera = ?, DataOraRilascioTessera = NOW(), DataOraScadenzaTessera = (NOW()+INTERVAL ? MONTH) 
+                                        WHERE CodFamiglia = ?;";
+                                        $inserTesseraParametri=[$CodiceTessera,$nMesiStallo['nMesiStallo'],$CodiceFiscale];
             
                                         $inserRich="UPDATE Richiedente 
                                         SET DataOraRitiroTessera = NULL, DataOraStalloTessera = NULL 
-                                        WHERE Cod_Fiscale = '".$CodiceFiscale."';";
+                                        WHERE Cod_Fiscale = ?;";
+                                        $inserRichParametri=[$CodiceFiscale];
             
-                                        $insertStoricoTessere="INSERT INTO StoricoTessere ( CodiceTessera, CodFamiglia, DataRilascio ) VALUES ('".$CodiceTessera."','".$CodiceFiscale."',NOW());";
+                                        $insertStoricoTessere="INSERT INTO StoricoTessere ( CodiceTessera, CodFamiglia, DataRilascio ) VALUES (?,?,NOW());";
+                                        $insertStoricoTessereParametri=[$CodiceTessera,$CodiceFiscale];
 
                                     }elseif( $riga['CodiceTessera'] == "" && $riga['DataOraRilascioTessera'] == "" && $riga['DataOraScadenzaTessera'] == "" && $riga['DataOraRitiroTessera'] == "" && $riga['DataOraStalloTessera'] == "" ){
 
                                         $inserTessera="INSERT INTO TesseraRilasciata (CodiceTessera, CodFamiglia, DataOraRilascioTessera, DataOraScadenzaTessera) VALUES 
-                                        ('".$CodiceTessera."','".$CodiceFiscale."',NOW(),(NOW()+INTERVAL '".$nMesiStallo['nMesiStallo']."' MONTH));";
+                                        (?,?,NOW(),(NOW()+INTERVAL ? MONTH));";
+                                        $inserTesseraParametri=[$CodiceTessera,$CodiceFiscale,$nMesiStallo['nMesiStallo']];
 
                                     }
                             }
                         /*————*/
 
                         /* Esecuzione Assegnazione */
-                            $risultato1=mysqli_query($connection,$inserTessera) OR DIE(mysqli_error($connection));
+                            $risultato1=mysqli_execute_query($connection,$inserTessera,$inserTesseraParametri) OR DIE(mysqli_error($connection));
 
                             $inserRich="UPDATE Richiedente 
                             SET DataOraRitiroTessera = NULL, DataOraStalloTessera = NULL 
-                            WHERE Cod_Fiscale = '".$CodiceFiscale."';";
+                            WHERE Cod_Fiscale = ?;";
+                            $inserRichParametri=[$CodiceFiscale];
 
-                            $insertStoricoTessere="INSERT INTO StoricoTessere ( CodiceTessera, CodFamiglia, DataRilascio ) VALUES ('".$CodiceTessera."','".$CodiceFiscale."',NOW());";
+                            $insertStoricoTessere="INSERT INTO StoricoTessere ( CodiceTessera, CodFamiglia, DataRilascio ) VALUES (?,?,NOW());";
+                            $insertStoricoTessereParametri=[$CodiceTessera,$CodiceFiscale];
 
-                            $risultatoInserRich=mysqli_query($connection,$inserRich) OR DIE($connection);
+                            $risultatoInserRich=mysqli_execute_query($connection,$inserRich,$inserRichParametri) OR DIE($connection);
 
-                            $risultatoStoricoTessere=mysqli_query($connection,$insertStoricoTessere) OR DIE($connection);
+                            $risultatoStoricoTessere=mysqli_execute_query($connection,$insertStoricoTessere,$insertStoricoTessereParametri) OR DIE($connection);
                         /*————*/
 
                         /* Dopo l'esecuzione dell'insert l'utente viene rimandato alla pagina del'assegnazione */
@@ -296,7 +303,7 @@
                                                     <?php
 
                                                         $i=0;
-                                                        while($riga=mysqli_fetch_array($risultato,MYSQLI_ASSOC)) {
+                                                        while($riga=\IlSole\Html\escapeRow(mysqli_fetch_array($risultato,MYSQLI_ASSOC))) {
 
                                                             $i++;
                                                             /*echo "<tr>";*/
@@ -388,7 +395,7 @@
                                                                     <option value="" disabled selected>Seleziona</option>
                                                                     <?php
                                                                     
-                                                                        while($riga_tes=mysqli_fetch_array($risultatoTessere,MYSQLI_ASSOC)) {
+                                                                        while($riga_tes=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoTessere,MYSQLI_ASSOC))) {
                                                                             if ( $riga_tes['CodiceTessera'] == NULL ) {
                                                                                 echo "<option value='".$riga_tes['Codice']."'>".$riga_tes['Codice']."</option>";
                                                                             } else {

@@ -39,9 +39,9 @@
                                     DIE();
                                 }
 
-                                $Domanda = $_REQUEST['TipoDiDomanda'];
-                                $nMembri = $_REQUEST['nComponentiNucleoFamiliare'];
-                                $CodiceFiscale = $_REQUEST['CodiceFiscale'];
+                                $Domanda = \IlSole\Input\text($_POST['TipoDiDomanda']);
+                                $nMembri = \IlSole\Input\wholeNumber($_POST['nComponentiNucleoFamiliare'] ?? '', 1, 22) ?? 1;
+                                $CodiceFiscale = \IlSole\Input\taxCode($_POST['CodiceFiscale'] ?? '');
 
                                 $_SESSION['Domanda'] = $Domanda;
                                 $_SESSION['nMembri'] = $nMembri;
@@ -108,7 +108,7 @@
                                                     <option></option>
                                                         <?php
                                                             $i=0;
-                                                            while( $riga=mysqli_fetch_array($risultatoRichiedenti,MYSQLI_ASSOC) ) {
+                                                            while( $riga=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoRichiedenti,MYSQLI_ASSOC)) ) {
                                                                 $i++;
                                                                 echo "<option value='".$riga['Cod_Fiscale']."'>". "$i: " .$riga['Cognome']. " " .$riga['Nome']. " -" .$riga['Cod_Fiscale']. "- " ."</option>";
                                                             }

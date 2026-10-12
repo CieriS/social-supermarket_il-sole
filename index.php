@@ -15,11 +15,17 @@
     $Errore = null;
     if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         \IlSole\Auth\requireCsrfToken();
-        if ( \IlSole\Auth\logIn($connection, (string) ($_POST['username'] ?? ''), (string) ($_POST['psw'] ?? '')) ) {
+        $Indirizzo = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+        if ( \IlSole\Auth\tooManyFailures($connection, $Indirizzo, time()) ) {
+            $Errore = "Troppi tentativi sbagliati: riprovare tra qualche minuto";
+        } elseif ( \IlSole\Auth\logIn($connection, (string) ($_POST['username'] ?? ''), (string) ($_POST['psw'] ?? '')) ) {
+            \IlSole\Auth\clearFailures($connection, $Indirizzo);
             header('Location: FileToBeExecuted/List.php');
             exit;
+        } else {
+            \IlSole\Auth\recordFailure($connection, $Indirizzo, time());
+            $Errore = "Username o password sbagliati";
         }
-        $Errore = "Username o password sbagliati";
     }
 
     /* Shown under the form when set: the credentials of the demo account */
