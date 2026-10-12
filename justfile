@@ -5,6 +5,8 @@ default:
 # Start the app on http://localhost:4330
 up:
     docker compose up -d --build --wait
+    @echo
+    @echo "The app is running: http://localhost:4330  (demo account: emporiosolidale / IlSole)"
 
 # Stop the app, keeping the database
 down:
@@ -13,14 +15,14 @@ down:
 # Drop the database and reload the demo data
 reset-db:
     docker compose down -v
-    docker compose up -d --build --wait
+    @just up
 
 # Follow the web and database logs
 logs:
     docker compose logs -f
 
 # Install the development dependencies (PHPUnit)
-install:
+install: up
     docker compose exec -T web composer install --no-interaction --no-progress
 
 # Run the unit tests
