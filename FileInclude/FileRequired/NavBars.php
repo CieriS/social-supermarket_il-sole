@@ -1,11 +1,4 @@
-<!doctype html>
-<html lang="it" ondragstart='return false' onselectstart='return false'>
-    <head>
-        <title> SamueleCieri </title>
-        <meta charset="UTF-8">
-    </head>
-    <body>
-
+<?php /* Header with the menu and footer, shared by the pages behind the login */ ?>
         <Div ID="Header" Class="Header">
 
             <Div>
@@ -147,16 +140,7 @@
         <Div Class="Footer">
 
             <Div>
-
-                <a href="https://cierisamuele.vercel.app" target="_blank"><Div class="Profile"><img Class="Profile" src="../FileInclude/immagini/s4msong.png" /></Div></a>
-
-            </Div>
-
-            <Div>
                 <span><a href="https://cierisamuele.vercel.app" target="_blank"><img Class="Signature" src="../FileInclude/immagini/FirmaDigitale_2.png" /></a></span>
             </Div>
 
         </Div>
-
-    </body>
-</html>

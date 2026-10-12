@@ -17,7 +17,6 @@
             /* FILE INCLUSI DI DEFAULT: Connessione al Database, Navbar e Footer, Funzioni php */
                 require('../FileInclude/FileRequired/Connessione.php');
                 require('../FileInclude/FileRequired/NavBars.php');
-                require('../FileInclude/FileRequired/Functions.php');
             /*————*/
 
             /* Metodo postback per ottimizzare la quantità di file ottimizzati */

@@ -15,7 +15,6 @@
             /* FILE INCLUSI DI DEFAULT: Connessione al Database, Navbar e Footer, Funzioni php */
                 require('../FileInclude/FileRequired/Connessione.php');
                 require('../FileInclude/FileRequired/NavBars.php');
-                require('../FileInclude/FileRequired/Functions.php');
             /*————*/
 
             /*  */
@@ -56,7 +55,7 @@
                             echo "<th class='submit' colspan='7'><input style='opacity: 0;' type='submit' /></th>";        
                         echo "</tr>";
                         echo "<tr>";
-                            echo "<th Class='submit' colspan='7'><img style='width:100%;' src='../FileInclude/immagini/footer.png' /></th>";
+                            echo "<th Class='submit' colspan='7'><img style='width:100%;' src='../FileInclude/immagini/Footer.png' /></th>";
                         echo "</tr>";
                     echo "</table>";
                 echo "</div>";

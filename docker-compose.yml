@@ -20,14 +20,11 @@ services:
 
   db:
     image: mariadb:11
-    # The 2021 code and views mix table-name casing (written on a
-    # case-insensitive filesystem), so names are compared case-insensitively.
-    command: --lower-case-table-names=1
     environment:
       MARIADB_ROOT_PASSWORD: dev
       MARIADB_DATABASE: EmporioSolidale
     volumes:
-      - ./db/EmporioSolidale.sql:/docker-entrypoint-initdb.d/EmporioSolidale.sql:ro
+      - ./db:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
