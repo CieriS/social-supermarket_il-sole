@@ -69,7 +69,7 @@
                                 $action=$_SERVER['PHP_SELF'];
                                 echo "<form action=" . $action . " method='POST' autocomplete='Off'>";
                                 ?>
-                                    <img ID="container" class="banner" src="../FileInclude/immagini/EmporioSolidale.png" />
+                                    <img ID="container" class="banner" src="../FileInclude/immagini/Intestazione.svg" />
 
                                     <h1>DOMANDA DI ACCESSO ALL'EMPORIO SOLIDALE</h1>
 

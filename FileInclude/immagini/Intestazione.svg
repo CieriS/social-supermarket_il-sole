@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" role="img" aria-label="Emporio Solidale Il Sole, applicazione dimostrativa">
+  <rect width="1200" height="300" fill="#ffffff"/>
+  <g transform="translate(250 120)">
+    <g stroke="#f5c400" stroke-width="10" stroke-linecap="round">
+      <line x1="0" y1="-62" x2="0" y2="-92"/>
+      <line x1="44" y1="-44" x2="65" y2="-65"/>
+      <line x1="62" y1="0" x2="92" y2="0"/>
+      <line x1="44" y1="44" x2="65" y2="65"/>
+      <line x1="-44" y1="-44" x2="-65" y2="-65"/>
+      <line x1="-62" y1="0" x2="-92" y2="0"/>
+      <line x1="-44" y1="44" x2="-65" y2="65"/>
+    </g>
+    <circle r="46" fill="#f5c400" stroke="#ee7d00" stroke-width="6"/>
+  </g>
+  <g font-family="Georgia, 'Times New Roman', serif">
+    <text x="390" y="118" font-size="54" font-weight="bold" fill="#b3261e">Emporio <tspan fill="#2e7d32">Solidale</tspan></text>
+    <text x="392" y="162" font-size="34" font-style="italic" fill="#1a237e">Il Sole</text>
+  </g>
+  <text x="1080" y="150" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#444444">Applicazione dimostrativa</text>
+  <text x="1080" y="178" text-anchor="end" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#444444">Tutti i dati sono di fantasia</text>
+  <path d="M120 222 C 380 300, 760 205, 1080 236 C 760 222, 380 318, 120 222 Z" fill="#ee7d00"/>
+  <path d="M120 214 C 380 292, 760 197, 1080 228 C 760 212, 380 306, 120 214 Z" fill="#f5c400"/>
+</svg>
