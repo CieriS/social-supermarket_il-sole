@@ -20,7 +20,7 @@ spirit. All the data in the repository is invented.
 
 ## Stack
 
-PHP 8.3 on Apache, MariaDB 11, plain HTML/CSS/JavaScript. Docker Compose for
+PHP 8.5 on Apache, MariaDB 11, plain HTML/CSS/JavaScript. Docker Compose for
 local development.
 
 ## Running it
