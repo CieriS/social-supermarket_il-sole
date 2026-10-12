@@ -38,7 +38,8 @@ Requires Docker and [just](https://github.com/casey/just).
 | `just check`    | Syntax check, unit tests and smoke test                |
 | `just demo-data` | Regenerate the demo data from its script              |
 
-The demo account is `emporiosolidale` / `IlSole`; the login page shows it when
+The demo account is `emporiosolidale` / `IlSole` (capital i, lower-case L). The
+login page shows it, with a button that fills it in, when
 `DEMO_LOGIN_HINT` is set, as it is in `docker-compose.yml`.
 
 ## Layout

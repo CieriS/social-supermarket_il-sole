@@ -31,8 +31,9 @@
         }
     }
 
-    /* Shown under the form when set: the credentials of the demo account */
-    $Suggerimento = getenv('DEMO_LOGIN_HINT') ?: null;
+    /* The demo account, "username / password": when set, a button under the form fills it in */
+    $Demo = array_map('trim', explode('/', (string) getenv('DEMO_LOGIN_HINT'), 2));
+    $Demo = count($Demo) === 2 && $Demo[0] !== '' && $Demo[1] !== '' ? $Demo : null;
 
 ?>
 <!doctype html>
@@ -163,8 +164,17 @@
             <?php if ( $Errore !== null ) { ?>
                 <p Class="Avviso Errore"><?php echo e($Errore); ?></p>
             <?php } ?>
-            <?php if ( $Suggerimento !== null ) { ?>
-                <p Class="Avviso">Account dimostrativo: <?php echo e($Suggerimento); ?></p>
+            <?php if ( $Demo !== null ) { ?>
+                <p Class="Avviso">
+                    Account dimostrativo: <code><?php echo e($Demo[0]); ?></code> / <code><?php echo e($Demo[1]); ?></code>
+                    <button type="button" id="UsaDemo" data-username="<?php echo e($Demo[0]); ?>" data-password="<?php echo e($Demo[1]); ?>">Compila</button>
+                </p>
+                <script>
+                    document.getElementById('UsaDemo').addEventListener('click', function () {
+                        document.querySelector('input[name="username"]').value = this.dataset.username;
+                        document.querySelector('input[name="psw"]').value = this.dataset.password;
+                    });
+                </script>
             <?php } ?>
 
         </form>

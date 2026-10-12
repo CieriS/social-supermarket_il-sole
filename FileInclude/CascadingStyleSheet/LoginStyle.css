@@ -750,3 +750,21 @@ input[type="checkbox"].show
     color: #ffd0d0;
     font-weight: bold;
 }
+.Avviso code{
+    font-family: Menlo, Consolas, monospace;
+    font-size: 1.15em;
+    background-color: rgba(0, 0, 0, 0.45);
+    padding: 0.1em 0.4em;
+    border-radius: 4px;
+    -webkit-user-select: text;
+    user-select: text;
+}
+.Avviso button{
+    margin-left: 0.8em;
+    padding: 0.2em 0.9em;
+    border: 0;
+    border-radius: 12px;
+    background-color: white;
+    font-weight: bold;
+    cursor: pointer;
+}
