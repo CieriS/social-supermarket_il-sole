@@ -1,3 +1,31 @@
+<?php
+
+    /* Login: everything that reads the request happens here, before any output */
+
+    require __DIR__ . '/src/bootstrap.php';
+
+    use function IlSole\Html\e;
+
+    if ( isset($_GET['esci']) ) {
+        \IlSole\Auth\logOut();
+        header('Location: index.php');
+        exit;
+    }
+
+    $Errore = null;
+    if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+        \IlSole\Auth\requireCsrfToken();
+        if ( \IlSole\Auth\logIn($connection, (string) ($_POST['username'] ?? ''), (string) ($_POST['psw'] ?? '')) ) {
+            header('Location: FileToBeExecuted/List.php');
+            exit;
+        }
+        $Errore = "Username o password sbagliati";
+    }
+
+    /* Shown under the form when set: the credentials of the demo account */
+    $Suggerimento = getenv('DEMO_LOGIN_HINT') ?: null;
+
+?>
 <!doctype html>
 <html lang="it" ondragstart='return false' onselectstart='return false'>
     <head>
@@ -11,117 +39,10 @@
     </head>
     <body>
 
-        <?php
-            
-                if($_POST) /* Metodo Postback */ {
+        <form action="index.php" method="POST" autocomplete="OFF">
 
-                    /* Inclusione del file per connettersi al DBMS */
-                        require('FileInclude/FileRequired/Connessione.php');
-                    /*————*/
+            <?php echo \IlSole\Auth\csrfField(); ?>
 
-                    /* Ricevo username e password */
-                        $username=strtolower($_REQUEST['username']);
-                        $password=md5($_REQUEST['psw']);
-                    /*————*/
-
-                    /* Select */
-                        $query="SELECT * FROM Administrator WHERE Username='".$username."';";
-                    /*————*/
-
-                    /* Esecuzione query */
-                        $risultato=mysqli_query($connection,$query) or die("Fatal Error" .mysqli_error($connection));
-                    /*————*/
-
-                    /* Array associativo */
-                        $valore=mysqli_fetch_array($risultato,MYSQLI_ASSOC);
-                    /*————*/
-
-                    /* Numero di righe */
-                        $righe=mysqli_num_rows($risultato);
-                    /*————*/
-
-                    /* Se il numero di righe risultante dalla select è 0, significa che l'username non esiste, quindi non ti permette di accedere e ti riporta all'inizio di questa pagina */
-                        if($righe == 0){
-                            ?>
-                                <script>
-                                    alert("Username inesistente!\nRiprova, potresti aver sbagliato...");
-                                    window.location.replace("index.php");
-                                </script>
-                            <?php
-                        }
-                        else
-                        if( $password == $valore['Password']  && $username == $valore['Username']) {
-
-                            $hash = MD5(rand(100000000,999999999));
-
-                            setcookie( 'CookieUser', $hash, strtotime("+30 minute") );
-
-                            $updateCookie="UPDATE Administrator SET Cookie = '".$hash."' WHERE Username = '".$username."';";
-
-                            $risultatoUpdateCookie=mysqli_query($connection,$updateCookie) or die(mysqli_error($connection));
-
-                                ?>
-                                    <script>
-                                        window.location.replace("FileToBeExecuted/List.php");
-                                    </script>
-                                <?php
-                                DIE();
-
-                            /*
-                                ?>
-
-                                    <table Class="WindowLogin">
-
-                                        <tr>
-                                            <th><a Class="Link" href="List.php">Visualizza Graduatoria</a></th>
-                                        </tr>
-
-                                        <tr>
-                                            <th><a Class="Link" href="Pass.php">Assegna Tessera</a></th>
-                                        </tr>
-
-                                        <tr>
-                                            <th><a Class="Link" href="Pass.php">Ritira Tessera</a></th>
-                                        </tr>
-
-                                        <tr>
-                                            <th><a Class="Link" href="Punteggio.php">Nuova Richiesta</a></th>
-                                        </tr>
-
-                                        <tr>
-                                            <th><a Class="Link" href="StrikeOut.php">Elimina Richiedente</a></th>
-                                        </tr>
-
-                                    </table>
-
-                                <?php
-                            */
-                        }
-                        else{
-                            ?>
-                            <script>
-                                alert("Ops...!\nPassword sbagliata =·(");
-                                window.location.replace("index.php");
-                            </script>
-                            <?php
-                        }
-                    /*————*/
-
-                    /* Libera la memoria utilizzata */
-                        mysqli_free_result($risultato);
-                    /*————*/
-
-                    /* Rilascio della connessione */
-                        mysqli_close($connection);
-                    /*————*/
-
-                }
-                else{
-                    /* Finestra Login */
-                        $action=$_SERVER['PHP_SELF'];
-                        echo "<form action=" . $action . " method='POST' autocomplete='OFF'>";
-                        ?>
-                        
                             <canvas id="cnv"></canvas>
                             <script src="FileInclude/Javascript/JavaScriptChemistry.js"></script>
                             <script>
@@ -197,12 +118,12 @@
                                     </tr>
                                     <tr>
                                         <th Class="Credenziali">
-                                            <input type="text" name="username" placeholder="Username" title="Inserisci username e password in qualità di amministratore" maxlength="15" value="EmporioSolidale" required/>
+                                            <input type="text" name="username" placeholder="Username" title="Inserisci username e password in qualità di amministratore" maxlength="15" autocomplete="username" required/>
                                         </th>
                                     </tr>
                                     <tr>
                                         <th Class="Credenziali">   
-                                            <input type="password" name="psw" placeholder="Password" maxlength="15" title="Inserisci Password" id="myInput" value="IlSole" required/>
+                                            <input type="password" name="psw" placeholder="Password" maxlength="72" title="Inserisci Password" id="myInput" autocomplete="current-password" required/>
                                         </th>
                                     </tr>
                                         <th Class="accedi">
@@ -229,12 +150,15 @@
 
                             </Div>
 
-                        </form>
-                        <?php
-                    /*————*/
-                }
 
-        ?>
+            <?php if ( $Errore !== null ) { ?>
+                <p Class="Avviso Errore"><?php echo e($Errore); ?></p>
+            <?php } ?>
+            <?php if ( $Suggerimento !== null ) { ?>
+                <p Class="Avviso">Account dimostrativo: <?php echo e($Suggerimento); ?></p>
+            <?php } ?>
+
+        </form>
 
     </body>
 </html>

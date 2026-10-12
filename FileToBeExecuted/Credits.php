@@ -1,3 +1,4 @@
+<?php require __DIR__ . '/../src/bootstrap.php'; \IlSole\Auth\requireLogin(); ?>
 <!doctype html>
 <html lang="it" ondragstart='return false' onselectstart='return false'>
         <head>

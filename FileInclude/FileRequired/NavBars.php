@@ -133,7 +133,7 @@
                                     </li>
                                 </ul>
                                 <li class="link">
-                                    <a href="../index.php">Esci</a>
+                                    <a href="../index.php?esci=1">Esci</a>
                                 </li>
                             </li>
 

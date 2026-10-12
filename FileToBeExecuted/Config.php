@@ -1,3 +1,4 @@
+<?php require __DIR__ . '/../src/bootstrap.php'; \IlSole\Auth\requireLogin(); ?>
 <!doctype html>
 <html lang="it" ondragstart='return false' onselectstart='return false'>
     <head>
@@ -16,7 +17,6 @@
             /* FILE INCLUSI DI DEFAULT RISPETTIVAMENTE Connessione al Database, Navbar e Footer, Funzioni php */
                 require('../FileInclude/FileRequired/Connessione.php');
                 require('../FileInclude/FileRequired/NavBars.php');
-                require('../FileInclude/FileRequired/Cookie.php');
                 require('../FileInclude/FileRequired/Functions.php');
                 require(__DIR__ . '/../src/Scoring.php');
                 require(__DIR__ . '/../src/Rules.php');
@@ -28,24 +28,27 @@
 
                     $nMesiStallo=$_REQUEST['nMesiStallo'];
 
-                    /* Gestione Credenziali */
-                        if( $_REQUEST['Psw'] == $_REQUEST['ConfirmPsw'] ) {
-                            if( $_REQUEST['Psw'] != "" && $_REQUEST['ConfirmPsw'] != "" ) {
-                                $Username=strtolower($_REQUEST['Username']);
-                                $Psw=md5($_REQUEST['Psw']);
-                                
-                                $UpdateCredenziali="UPDATE Administrator 
-                                SET Username = '".$Username."', Password = '".$Psw."'; ";
-
-                                $RisultatoCredenziali=mysqli_query($connection,$UpdateCredenziali) OR DIE(mysqli_error($connection));
+                    /* Gestione Credenziali: si cambiano solo se viene scritta una nuova password */
+                        $NuovaPsw=(string) ($_POST['Psw'] ?? '');
+                        $Username=strtolower(trim((string) ($_POST['Username'] ?? '')));
+                        $ErroreCredenziali=null;
+                        if( $NuovaPsw !== '' || ($_POST['ConfirmPsw'] ?? '') !== '' ) {
+                            if( $NuovaPsw !== ($_POST['ConfirmPsw'] ?? '') ) {
+                                $ErroreCredenziali="Le password non corrispondono";
+                            } elseif( strlen($NuovaPsw) < 8 ) {
+                                $ErroreCredenziali="La password deve avere almeno 8 caratteri";
+                            } elseif( !preg_match('/^[a-z0-9._-]{4,15}$/', $Username) ) {
+                                $ErroreCredenziali="L'username deve avere da 4 a 15 caratteri tra lettere, cifre, punto, trattino";
                             }
-                        } else {
+                        }
+                        if( $ErroreCredenziali !== null ) {
                             ?>
                                 <script>
-                                    alert("Le password non corrispondono");
+                                    alert(<?php echo json_encode("Configurazione non salvata\n".$ErroreCredenziali, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>);
                                     window.location.replace("Config.php");
                                 </script>
                             <?php
+                            DIE();
                         }
                     /*————*/
 
@@ -72,6 +75,13 @@
                 /*————*/
 
                 /* Esecuzione Update */
+
+                    /* Update Credenziali */
+                        if( $NuovaPsw !== '' ) {
+                            mysqli_execute_query($connection,"UPDATE Administrator SET Username = ?, Password = ? WHERE Username = ?",[$Username,password_hash($NuovaPsw,PASSWORD_DEFAULT),$_SESSION['operator']]);
+                            $_SESSION['operator']=$Username;
+                        }
+                    /*————*/
 
                     /* Update Mesi di Stallo */
                         $UpdateMesiStallo="UPDATE Stallo 
@@ -123,6 +133,7 @@
 
                 $action=$_SERVER['PHP_SELF'];
                 echo "<form action=" . $action . " method='POST' autocomplete='Off'>";
+                echo \IlSole\Auth\csrfField();
 
                     /* SELECT */
 
@@ -171,8 +182,8 @@
                         echo "<tr><th Class='LightBlue' colspan='3'>Cambia Username e Password</th></tr>";
                         echo "<tr><th Class='Orangino' colspan='3'>Nuovo Username e password (se l'username cambia deve essere cambiata anche la password)</th></tr>";
 
-                        echo "<tr title='Se cambia l'username vanno inserite anche le password, altrimenti le credenziali non verranno aggiornate.'><th colspan='3'><input minlength='4' maxlength='15' type='text' name='Username' placeholder='Username' value='".$UsPsw['Username']."' required/></th></tr>
-                        <tr title='Se cambia l'username vanno inserite anche le password, altrimenti le credenziali non verranno aggiornate.'><th colspan='3'><input minlength='4' maxlength='15' type='password' name='Psw' placeholder='Password' /><input minlength='4' maxlength='15' type='password' name='ConfirmPsw' placeholder='Conferma Password'/></th></tr>";
+                        echo "<tr title='Se cambia l'username vanno inserite anche le password, altrimenti le credenziali non verranno aggiornate.'><th colspan='3'><input minlength='4' maxlength='15' type='text' name='Username' placeholder='Username' value='".\IlSole\Html\e($UsPsw['Username'])."' required/></th></tr>
+                        <tr title='Se cambia l'username vanno inserite anche le password, altrimenti le credenziali non verranno aggiornate.'><th colspan='3'><input minlength='8' maxlength='72' type='password' name='Psw' placeholder='Password' autocomplete='new-password' /><input minlength='8' maxlength='72' type='password' name='ConfirmPsw' placeholder='Conferma Password' autocomplete='new-password'/></th></tr>";
 
                         /*———— Indicatori ISEE ————*/
                         echo "<tr><th Class='LightBlue' colspan='3'>Indicatori ISEE</th></tr>";

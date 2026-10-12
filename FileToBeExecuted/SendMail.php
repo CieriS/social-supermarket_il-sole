@@ -1,3 +1,4 @@
+<?php require __DIR__ . '/../src/bootstrap.php'; \IlSole\Auth\requireLogin(); ?>
 <!doctype html>
 <html lang="it" ondragstart='return false' onselectstart='return false'>
     <head>
@@ -16,7 +17,6 @@
             /* FILE INCLUSI DI DEFAULT RISPETTIVAMENTE Connessione al Database, Navbar e Footer, Funzioni php */
                 require('../FileInclude/FileRequired/Connessione.php');
                 require('../FileInclude/FileRequired/NavBars.php');
-                require('../FileInclude/FileRequired/Cookie.php');
                 require('../FileInclude/FileRequired/Functions.php');
             /*————*/
 
@@ -120,6 +120,7 @@
 
                 $action=$_SERVER['PHP_SELF'];
                 echo "<form action=" . $action . " method='POST' autocomplete='Off'>";
+                echo \IlSole\Auth\csrfField();
 
                     ?>
                         <div class='centro'>

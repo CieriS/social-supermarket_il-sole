@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Logs in with the demo account and opens every page, failing on HTTP errors,
-# PHP fatal errors or a bounce back to the login page. Then submits a new
+# Checks that pages are closed without a login, logs in with the demo account
+# and opens every page, failing on HTTP errors or PHP fatal errors. Then submits a new
 # application (with mistakes, then right, then twice), changes a rule of the
 # grid in the configuration and submits an update, checking what ends up in
 # the database each time.
@@ -13,16 +13,53 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 failed=0
 
-field() { grep -oE "name=\"$1\"[^>]*value=\"[^\"]*\"" index.php | sed -E 's/.*value="([^"]*)"/\1/'; }
+user="${SMOKE_USER:-emporiosolidale}"
+password="${SMOKE_PASSWORD:-IlSole}"
 
-curl -sS -c "$tmp/jar" -o "$tmp/login" \
-    --data-urlencode "username=$(field username)" \
-    --data-urlencode "psw=$(field psw)" \
-    "$base/index.php"
-if ! grep -q CookieUser "$tmp/jar"; then
-    echo "FAIL login: no session cookie" >&2
+report() {
+    printf '%-46s %s\n' "$1" "$2"
+    [ "$2" = ok ] || failed=1
+}
+
+# Without a login every page sends back to the login page, and the export
+# gives nothing away.
+status=ok
+for page in List.php Config.php Grad_Export.php ModuloDomanda.php; do
+    code="$(curl -sS -o "$tmp/body" -w '%{http_code}' "$base/FileToBeExecuted/$page")"
+    [ "$code" = 302 ] && [ ! -s "$tmp/body" ] || status="FAIL $page answered $code without a login"
+done
+report "pages without a login" "$status"
+
+# form_token <page>: the token every form of the session carries. It changes
+# when the session does: at login, and when a closed page is asked for.
+form_token() {
+    curl -sS -b "$tmp/jar" -c "$tmp/jar" "$base/$1" | grep -oE "name='csrf' value='[^']*'" | head -1 | sed -E "s/.*value='([^']*)'/\1/"
+}
+touch "$tmp/jar"
+csrf="$(form_token index.php)"
+
+status=ok
+code="$(curl -sS -b "$tmp/jar" -c "$tmp/jar" -o "$tmp/body" -w '%{http_code}' --data-urlencode "csrf=$csrf" \
+    --data-urlencode "username=$user" --data-urlencode 'psw=not-the-password' "$base/index.php")"
+[ "$code" = 200 ] && grep -q 'Username o password sbagliati' "$tmp/body" || status="FAIL wrong password answered $code"
+code="$(curl -sS -b "$tmp/jar" -o /dev/null -w '%{http_code}' "$base/FileToBeExecuted/List.php")"
+[ "$code" = 302 ] || status="FAIL logged in with a wrong password"
+report "login with a wrong password" "$status"
+
+status=ok
+code="$(curl -sS -b "$tmp/jar" -o /dev/null -w '%{http_code}' \
+    --data-urlencode "username=$user" --data-urlencode "psw=$password" "$base/index.php")"
+[ "$code" = 400 ] || status="FAIL login without the form token answered $code"
+report "login without the form token" "$status"
+
+csrf="$(form_token index.php)"
+code="$(curl -sS -b "$tmp/jar" -c "$tmp/jar" -o /dev/null -w '%{http_code}' --data-urlencode "csrf=$csrf" \
+    --data-urlencode "username=$user" --data-urlencode "psw=$password" "$base/index.php")"
+if [ "$code" != 302 ]; then
+    echo "FAIL login: answered $code" >&2
     exit 1
 fi
+csrf="$(form_token FileToBeExecuted/Domanda.php)"
 
 for page in index.php home.html FileToBeExecuted/*.php; do
     # Needs the choices made in Domanda.php: covered by the flows below.
@@ -32,7 +69,6 @@ for page in index.php home.html FileToBeExecuted/*.php; do
     status=ok
     [ "$code" = 200 ] || status="FAIL http $code"
     if grep -qE '<b>(Fatal error|Parse error)</b>' "$tmp/body"; then status="FAIL fatal error"; fi
-    if grep -q "location.replace('../index.php')" "$tmp/body"; then status="FAIL sent back to login"; fi
     if [ "${STRICT:-0}" = 1 ] && [ "$warnings" != 0 ]; then status="FAIL $warnings warnings"; fi
     printf '%-46s %-24s warnings=%s\n' "$page" "$status" "$warnings"
     [ "$status" = ok ] || failed=1
@@ -91,7 +127,7 @@ application_value() {
 # downloads the form.
 open_form() {
     curl -sS -b "$tmp/jar" -c "$tmp/jar" -o /dev/null \
-        --data-urlencode "TipoDiDomanda=$1" -d nComponentiNucleoFamiliare=3 \
+        --data-urlencode "csrf=$csrf" --data-urlencode "TipoDiDomanda=$1" -d nComponentiNucleoFamiliare=3 \
         --data-urlencode "CodiceFiscale=$tax_code" "$base/FileToBeExecuted/Domanda.php"
     curl -sS -b "$tmp/jar" -o "$tmp/form" "$base/FileToBeExecuted/ModuloDomanda.php"
 }
@@ -106,6 +142,7 @@ submit_application() {
     while IFS= read -r name; do
         value="$(application_value "$name")"
         [ "$name" = TipoDiDomanda ] && value="$kind"
+        [ "$name" = csrf ] && value="$csrf"
         for override in "$@"; do
             [ "${override%%=*}" = "$name" ] && value="${override#*=}"
         done
@@ -153,6 +190,13 @@ grep -q 'gi&agrave; registrato\|già registrato' "$tmp/body" || status="FAIL dup
 [ "$(sql "SELECT ISEE FROM Richiedente WHERE Cod_Fiscale='$tax_code'")" = 2000 ] || status="FAIL duplicate overwrote the applicant"
 printf '%-46s %s\n' "duplicate application" "$status"
 [ "$status" = ok ] || failed=1
+
+# A form without the token of the session is refused.
+status=ok
+code="$(curl -sS -b "$tmp/jar" -o /dev/null -w '%{http_code}' -d nMesiStallo=99 "$base/FileToBeExecuted/Config.php")"
+[ "$code" = 400 ] || status="FAIL answered $code"
+[ "$(sql 'SELECT nMesiStallo FROM Stallo')" != 99 ] || status="FAIL the form was applied"
+report "form without the token" "$status"
 
 # Configuration: every field is sent back as it is, except one rule of the grid.
 curl -sS -b "$tmp/jar" -o "$tmp/form" "$base/FileToBeExecuted/Config.php"
