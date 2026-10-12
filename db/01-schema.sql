@@ -247,7 +247,7 @@ CREATE TABLE `Richiedente` (
   `DocumentoImmig` char(10) DEFAULT NULL,
   `Telefono` varchar(15) NOT NULL,
   `Mail` varchar(100) NOT NULL,
-  `ServiziSociali` varchar(15) NOT NULL,
+  `ServiziSociali` varchar(30) NOT NULL,
   `ComeHaConosciutoEmporio` varchar(30) DEFAULT NULL,
   `nMembri` int(2) NOT NULL,
   `DataOraRitiroTessera` date DEFAULT NULL,

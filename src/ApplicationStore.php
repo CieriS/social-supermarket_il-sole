@@ -9,10 +9,15 @@ declare(strict_types=1);
 
 namespace IlSole\Store;
 
+use DateTimeImmutable;
 use mysqli;
 use Throwable;
 
+use function IlSole\Form\applicationFromForm;
+use function IlSole\Record\formFromRecord;
+
 use function IlSole\Rules\rulesFromRows;
+use function IlSole\Scoring\scoreApplication;
 
 use const IlSole\Form\ASSESSMENT_FIELDS;
 use const IlSole\Record\ASSETS;
@@ -143,8 +148,7 @@ function saveRecord(mysqli $db, array $record, array $scores, bool $isNew): void
             );
         }
 
-        $db->execute_query('DELETE FROM Punteggio WHERE CodFamiglia = ?', [$taxCode]);
-        insert($db, 'Punteggio', ['CodFamiglia' => $taxCode] + array_intersect_key($scores, array_flip(SCORE_COLUMNS)));
+        saveScores($db, $taxCode, $scores);
 
         $db->execute_query('DELETE FROM ValutazioneGriglia WHERE CodFamiglia = ?', [$taxCode]);
         insert(
@@ -197,4 +201,37 @@ function saveRecord(mysqli $db, array $record, array $scores, bool $isNew): void
         $db->rollback();
         throw $error;
     }
+}
+
+function saveScores(mysqli $db, string $taxCode, array $scores): void
+{
+    $db->execute_query('DELETE FROM Punteggio WHERE CodFamiglia = ?', [$taxCode]);
+    insert($db, 'Punteggio', ['CodFamiglia' => $taxCode] + array_intersect_key($scores, array_flip(SCORE_COLUMNS)));
+}
+
+/*
+    Scores every stored application again, with the points and the ISEE
+    brackets configured now and the ages of $today. Returns how many were
+    scored. All or nothing: one application that cannot be scored leaves
+    every score as it was.
+*/
+function recalculateScores(mysqli $db, DateTimeImmutable $today): int
+{
+    $rules = loadRules($db);
+    $brackets = loadIseeBrackets($db);
+    $taxCodes = array_column(rows($db, 'SELECT Cod_Fiscale FROM Richiedente'), 'Cod_Fiscale');
+
+    $db->begin_transaction();
+    try {
+        foreach ($taxCodes as $taxCode) {
+            $application = applicationFromForm(formFromRecord(loadRecord($db, $taxCode)));
+            saveScores($db, $taxCode, scoreApplication($application, $brackets, $today, $rules));
+        }
+        $db->commit();
+    } catch (Throwable $error) {
+        $db->rollback();
+        throw $error;
+    }
+
+    return count($taxCodes);
 }

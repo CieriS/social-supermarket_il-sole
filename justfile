@@ -27,6 +27,10 @@ install:
 test:
     docker compose exec -T web vendor/bin/phpunit
 
+# Regenerate db/02-demo-data.sql from scripts/generate-demo-data.php
+demo-data:
+    docker compose exec -T web php scripts/generate-demo-data.php > db/02-demo-data.sql
+
 # Syntax-check every PHP file
 lint:
     docker compose run --rm --no-deps web sh -c 'find . -name "*.php" -not -path "./vendor/*" -print0 | xargs -0 -n1 php -l > /dev/null'

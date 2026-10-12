@@ -187,6 +187,19 @@ check() {
     [ "$status" = ok ] || failed=1
 }
 
+# post <page> field=value ...: sends a form of the session to a page.
+post() {
+    local page="$1" field args=(--data-urlencode "csrf=$csrf")
+    shift
+    for field in "$@"; do args+=(--data-urlencode "$field"); done
+    curl -sS -b "$tmp/jar" -o "$tmp/body" "${args[@]}" "$base/FileToBeExecuted/$page"
+}
+no_php_error() {
+    if grep -qE '<b>(Fatal error|Parse error)</b>' "$tmp/body"; then
+        status="FAIL $(grep -oE '<b>(Fatal error|Parse error)</b>:[^<]*' "$tmp/body" | head -1 | sed -E 's/<[^>]+>//g')"
+    fi
+}
+
 # A form with mistakes is not saved and comes back filled in, with the reasons.
 submit_application 'Domanda Nuova' 'DataNascitaRichiedente=31/02/1980' 'Mail=nobody'
 status=ok
@@ -222,7 +235,7 @@ args=()
 while IFS= read -r field; do
     [ "${field%%=*}" = 'Regola[minors_more_adults]' ] && field='Regola[minors_more_adults]=12'
     args+=(--data-urlencode "$field")
-done < <(perl -ne 'while (/<input[^>]*\bname=\x27([^\x27]+)\x27[^>]*>/g) { $tag = $&; $name = $1; $value = $tag =~ /\bvalue=\x27([^\x27]*)\x27/ ? $1 : ""; print "$name=$value\n" unless $name =~ /Psw|Aggiorna/ }' "$tmp/form")
+done < <(perl -ne 'while (/<input[^>]*\bname=\x27([^\x27]+)\x27[^>]*>/g) { $tag = $&; $name = $1; $value = $tag =~ /\bvalue=\x27([^\x27]*)\x27/ ? $1 : ""; print "$name=$value\n" unless $name =~ /Psw|Aggiorna|Ricalcola/ }' "$tmp/form")
 curl -sS -b "$tmp/jar" -o "$tmp/body" "${args[@]}" "$base/FileToBeExecuted/Config.php"
 status=ok
 stored="$(sql "SELECT CONCAT_WS(' ', COUNT(*), SUM(Chiave='minors_more_adults' AND Punti=12), SUM(Chiave='minors_one_adult' AND Punti=15)) FROM RegolePunteggio")"
@@ -261,18 +274,19 @@ stored="$(sql "SELECT CONCAT_WS(' ', R.ISEE, (SELECT COUNT(*) FROM Entrate WHERE
 printf '%-46s %s\n' "updated rows" "$status"
 [ "$status" = ok ] || failed=1
 
-# post <page> field=value ...: sends a form of the session to a page.
-post() {
-    local page="$1" field args=(--data-urlencode "csrf=$csrf")
-    shift
-    for field in "$@"; do args+=(--data-urlencode "$field"); done
-    curl -sS -b "$tmp/jar" -o "$tmp/body" "${args[@]}" "$base/FileToBeExecuted/$page"
-}
-no_php_error() {
-    if grep -qE '<b>(Fatal error|Parse error)</b>' "$tmp/body"; then
-        status="FAIL $(grep -oE '<b>(Fatal error|Parse error)</b>:[^<]*' "$tmp/body" | head -1 | sed -E 's/<[^>]+>//g')"
-    fi
-}
+# Recalculation: with the grid back to its points, a score spoiled by hand is
+# put right and the scores of the demo families, generated with the same
+# rules, do not move.
+sql "UPDATE RegolePunteggio SET Punti=10 WHERE Chiave='minors_more_adults';
+     UPDATE Punteggio SET PunteggioTotale=9999, PunteggioISEE=1 WHERE CodFamiglia='$tax_code'"
+others="SELECT CONCAT_WS(' ', COUNT(*), SUM(PunteggioTotale), SUM(PunteggioPresenzaMinori), SUM(PunteggioBenefit)) FROM Punteggio WHERE CodFamiglia<>'$tax_code'"
+before="$(sql "$others")"
+post Config.php Ricalcola=Ricalcola
+check 'recalculated application' '60 10 15 20 5 -22 88' '1 0 1 0 2'
+status=ok
+grep -q 'Graduatoria ricalcolata' "$tmp/body" || status="FAIL no confirmation"
+[ "$(sql "$others")" = "$before" ] || status="FAIL demo scores moved from '$before' to '$(sql "$others")'"
+report "recalculation leaves right scores alone" "$status"
 
 # Shopping cards: add one, assign it, look at the applicant, withdraw it, delete it.
 card=SMOKECARD001
