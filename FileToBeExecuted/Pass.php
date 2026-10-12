@@ -16,7 +16,6 @@
             /* FILE INCLUSI DI DEFAULT: Connessione al Database, Navbar e Footer, Funzioni php */
                 require('../FileInclude/FileRequired/Connessione.php');
                 require('../FileInclude/FileRequired/NavBars.php');
-                require('../FileInclude/FileRequired/Functions.php');
             /*————*/
 
             /* Metodo postback per ottimizzare la quantità di file ottimizzati */
@@ -184,9 +183,9 @@
                                 FROM Tessera 
                                 ORDER BY Codice ASC;"; Con questo si vedono tutte le tessere */
 
-                                /*$queryCodTessere="SELECT * FROM tessera AS T LEFT OUTER JOIN TesseraRilasciata AS TR ON T.Codice = TR.CodiceTessera where TR.CodiceTessera is null;";*/ /* Con questo si vedono solo le tessere non ancora assegnate */
+                                /*$queryCodTessere="SELECT * FROM Tessera AS T LEFT OUTER JOIN TesseraRilasciata AS TR ON T.Codice = TR.CodiceTessera where TR.CodiceTessera is null;";*/ /* Con questo si vedono solo le tessere non ancora assegnate */
 
-                                $queryCodTessere="SELECT * FROM tessera AS T LEFT OUTER JOIN TesseraRilasciata AS TR ON T.Codice = TR.CodiceTessera;"; /* Con questo si vedono tutte le tessere */
+                                $queryCodTessere="SELECT * FROM Tessera AS T LEFT OUTER JOIN TesseraRilasciata AS TR ON T.Codice = TR.CodiceTessera;"; /* Con questo si vedono tutte le tessere */
                             /*————*/
 
                             /* ESECUZIONE DELLE SELECT */

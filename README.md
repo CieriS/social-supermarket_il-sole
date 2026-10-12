@@ -31,7 +31,7 @@ Requires Docker and [just](https://github.com/casey/just).
 | --------------- | ------------------------------------------------------ |
 | `just up`       | Build and start the app on <http://localhost:4330>     |
 | `just down`     | Stop it, keeping the database                          |
-| `just reset-db` | Drop the database and reload the demo data             |
+| `just reset-db` | Drop the database and reload schema and demo data      |
 | `just logs`     | Follow the web and database logs                       |
 | `just install`  | Install the development dependencies (first time only) |
 | `just test`     | Unit tests of the scoring rules                        |
@@ -49,7 +49,7 @@ The demo account is `emporiosolidale` / `IlSole`; the login page shows it when
 | `FileInclude/`      | Shared PHP includes, stylesheets, scripts and images |
 | `src/`              | Scoring, rules, form reading and storage             |
 | `tests/`            | Unit tests (PHPUnit)                                 |
-| `db/`               | Schema and demo data loaded on first start           |
+| `db/`               | `01-schema.sql` (tables, views, configuration) and `02-demo-data.sql` |
 | `docs/`             | Evaluation grid and E/R diagrams                     |
 | `scripts/`          | Smoke test: every page, applications, configuration  |
 
@@ -137,5 +137,6 @@ Known gaps:
    smoke test.
 4. The export is a tab-separated file served with an `.xls` name.
 
-The database container compares table names case-insensitively, because the
-code and the views mix their casing.
+Table and view names are written with the same casing everywhere, so the
+application also runs on a database that tells `Tessera` from `tessera`, as
+Linux hosts do.

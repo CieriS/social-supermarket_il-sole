@@ -19,7 +19,6 @@
                         /* FILE INCLUSI DI DEFAULT: Connessione al Database, Navbar e Footer, Funzioni php */
                             require('../FileInclude/FileRequired/Connessione.php');
                             require('../FileInclude/FileRequired/NavBars.php');
-                            require('../FileInclude/FileRequired/Functions.php');
                             ?>
                                 <style>
                                     .Search{
@@ -36,7 +35,7 @@
                         /* Select */
 
                             /* Select e Esecuzione Select Richiedente, Punteggio e tessere */
-                                $queryRichiedente="SELECT * FROM informazioniRichiedente WHERE Cod_Fiscale = ?";
+                                $queryRichiedente="SELECT * FROM InformazioniRichiedente WHERE Cod_Fiscale = ?";
                                 $queryRichiedenteParametri=[$Cod_Fiscale];
                                 /* SELECT R.Cod_Fiscale, R.Cognome, R.Nome, R.LuogoNascita, DATE_FORMAT(R.DataNascita, '%d/%m/%Y') AS DataNascita, R.Cittadinanza, R.InItaliaDallAnno, R.Residenza, R.Via, R.TipoAlloggio, R.DocumentoIdent, R.DocumentoImmig, R.Telefono, R.Mail, R.ServiziSociali, R.ComeHaConosciutoEmporio, R.nMembri, R.ISEE, TR.CodiceTessera, DATE_FORMAT(TR.DataOraRilascioTessera, '%d/%m/%Y') AS DataOraRilascioTessera, DATE_FORMAT(TR.DataOraScadenzaTessera, '%d/%m/%Y') AS DataOraScadenzaTessera, DATE_FORMAT(R.DataOraRitiroTessera, '%d/%m/%Y') AS DataOraRitiroTessera, DATE_FORMAT(R.DataOraStalloTessera, '%d/%m/%Y') AS DataOraStalloTessera, P.PunteggioISEE, P.PunteggioPresenzaMinori, P.PunteggioDisoccupazione, P.PunteggioInvalidi, P.PunteggioSituazioneDebitoria, P.PunteggioBenefit, P.PunteggioTotale 
                                 FROM Richiedente AS R LEFT OUTER JOIN TesseraRilasciata AS TR 
@@ -51,7 +50,7 @@
                             /*————*/
 
                             /* Select e Esecuzione Select Membri */
-                                $queryMembri="SELECT * FROM informazioniMembri 
+                                $queryMembri="SELECT * FROM InformazioniMembri 
                                 WHERE CodFamiglia = ?;";
                                 $queryMembriParametri=[$Cod_Fiscale];
                                 /* SELECT nMembro, NomeCognome, LuogoNascita, DATE_FORMAT(DataNascita, '%d/%m/%Y') AS DataNascita, Parentela, Occupazione, TitoloDiStudio, Competenze, ConoscenzaLingua, Patente, AttualeAtt, Presso, Termine, SenzaLavoroDa, CodFamiglia 
@@ -61,7 +60,7 @@
                             /*————*/
 
                             /* Select e Esecuzione Select Disponibilità Collaborative */
-                                $queryDisp="SELECT * FROM informazioniDispColl 
+                                $queryDisp="SELECT * FROM InformazioniDispColl 
                                 WHERE CodFamiglia = ?;";
                                 $queryDispParametri=[$Cod_Fiscale];
                                 /* SELECT AmbitoFormativo, AmbitoLavorativo, AmbitoSociale, CodFamiglia 
@@ -71,7 +70,7 @@
                             /*————*/
 
                             /* Select e Esecuzione Select Situazione Socio Sanitaria */
-                                $querySSS="SELECT * FROM informazioniSSS  
+                                $querySSS="SELECT * FROM InformazioniSSS  
                                 WHERE CodFamiglia = ?;";
                                 $querySSSParametri=[$Cod_Fiscale];
                                 /* SELECT N, Evento, Anno, DocAll, CodFamiglia 
@@ -399,7 +398,6 @@
 
                                     <!--    <Div>
 
-                                        <a href="https://cierisamuele.vercel.app"><Div class="imgFin"><img Class="imgFin" src="../FileInclude/immagini/s4msong.png" /></Div></a>
 
                                     </Div>  -->
 
@@ -421,7 +419,6 @@
                     /* FILE INCLUSI DI DEFAULT: Connessione al Database, Navbar e Footer, Funzioni php */
                         require('../FileInclude/FileRequired/Connessione.php');
                         require('../FileInclude/FileRequired/NavBars.php');
-                        require('../FileInclude/FileRequired/Functions.php');
                     /*————*/
 
                     $action=$_SERVER['PHP_SELF'];
@@ -642,7 +639,7 @@
 
                                                     <tr>
                                                         <th Class='submit' colspan="19">
-                                                            <img style='width:100%;' src='../FileInclude/immagini/footer.png' />
+                                                            <img style='width:100%;' src='../FileInclude/immagini/Footer.png' />
                                                         </th>
                                                     </tr>
                                                 <!---->

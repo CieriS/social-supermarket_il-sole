@@ -15,7 +15,6 @@
             /* FILE INCLUSI DI DEFAULT: Connessione al Database, Navbar e Footer, Funzioni php */
                 require('../FileInclude/FileRequired/Connessione.php');
                 require('../FileInclude/FileRequired/NavBars.php');
-                require('../FileInclude/FileRequired/Functions.php');
             /*————*/
 
             /* Metodo postback per ottimizzare la quantità di file ottimizzati */
@@ -33,7 +32,7 @@
                         if ( $_REQUEST['Codice'] != "" ) {
                             $Codice=\IlSole\Input\cardCode($_POST['Codice']);
 
-                            $Tessere="SELECT t.Codice, tr.CodFamiglia FROM tessera as t left join tesserarilasciata as tr on t.codice=tr.codicetessera ORDER BY Codice ASC;";
+                            $Tessere="SELECT t.Codice, tr.CodFamiglia FROM Tessera as t left join TesseraRilasciata as tr on t.codice=tr.codicetessera ORDER BY Codice ASC;";
                             $risultatoTessera=mysqli_query($connection,$Tessere) OR DIE();
 
                             while ( $riga=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoTessera,MYSQLI_ASSOC)) ) {
@@ -126,7 +125,7 @@
                                 </tr>
 
                                 <?php
-                                    $Tessere="SELECT t.Codice, tr.CodFamiglia FROM tessera as t left join tesserarilasciata as tr on t.codice=tr.codicetessera ORDER BY Codice ASC;";
+                                    $Tessere="SELECT t.Codice, tr.CodFamiglia FROM Tessera as t left join TesseraRilasciata as tr on t.codice=tr.codicetessera ORDER BY Codice ASC;";
                                     $risultatoTessera=mysqli_query($connection,$Tessere) OR DIE();
                                     $i=0;
                                     while ( $riga=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoTessera,MYSQLI_ASSOC)) ) {
@@ -152,7 +151,7 @@
                                 </tr>
                                 <tr>
                                     <th Class='submit' colspan="4">
-                                        <img style='width:100%;' src='../FileInclude/immagini/footer.png' />
+                                        <img style='width:100%;' src='../FileInclude/immagini/Footer.png' />
                                     </th>
                                 </tr>
                             </table>

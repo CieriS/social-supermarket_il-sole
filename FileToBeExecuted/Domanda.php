@@ -18,7 +18,6 @@
                 /* File Required */
                     require('../FileInclude/FileRequired/Connessione.php');
                     require('../FileInclude/FileRequired/NavBars.php');
-                    require('../FileInclude/FileRequired/Functions.php');
                 /*————*/
 
                 /* Lista Richiedenti */
