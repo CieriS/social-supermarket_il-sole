@@ -1,3 +1,4 @@
+<?php require __DIR__ . '/../src/bootstrap.php'; \IlSole\Auth\requireLogin(); ?>
 <!doctype html>
 <html lang="it" ondragstart='return false' onselectstart='return false'>
     <head>
@@ -12,7 +13,6 @@
 
 
         <?php
-                        session_start();
                         require('../FileInclude/FileRequired/Connessione.php');
                         
                             /* Se Codice Tessera non è stato inserito */

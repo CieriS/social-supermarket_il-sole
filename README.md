@@ -37,7 +37,8 @@ Requires Docker and [just](https://github.com/casey/just).
 | `just test`     | Unit tests of the scoring rules                        |
 | `just check`    | Syntax check, unit tests and smoke test                |
 
-The login page is pre-filled with the demo administrator account.
+The demo account is `emporiosolidale` / `IlSole`; the login page shows it when
+`DEMO_LOGIN_HINT` is set, as it is in `docker-compose.yml`.
 
 ## Layout
 
@@ -77,6 +78,14 @@ A form with mistakes is not saved: it comes back filled in, with the list of
 what to fix. An update keeps the shopping card and the skills linked to the
 members.
 
+## Access
+
+Every page starts by loading `src/bootstrap.php` and calling
+`IlSole\Auth\requireLogin()`, before printing anything. The login is a PHP
+session (HTTP-only cookie, expiring after 30 minutes without requests);
+passwords are stored with `password_hash`. Every form carries a token of the
+session and a POST without it is refused.
+
 ## Scoring
 
 Where the grid can be read in more than one way, this is the reading taken:
@@ -109,9 +118,10 @@ stored scores are not recalculated.
 
 Known gaps, in the order they are being addressed:
 
-1. Outside the application form, queries are built by string concatenation
-   and output is not escaped; passwords are hashed with MD5 and some pages
-   skip the login check: not safe to expose as is.
+1. Outside the application form, queries are still built by string
+   concatenation and output is not escaped. Every page is behind the login,
+   so only a logged-in operator can reach them, but it is not safe to expose
+   as is.
 2. The members outside the ISEE household, which the paper form lists, are
    not collected: the original page asked for them but never stored them.
 3. Changing the points of the grid does not recalculate the stored scores.

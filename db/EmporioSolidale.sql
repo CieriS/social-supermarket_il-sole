@@ -29,16 +29,15 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `Administrator` (
   `Username` varchar(15) NOT NULL,
-  `Password` char(32) NOT NULL,
-  `Cookie` varchar(50) DEFAULT NULL
+  `Password` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dump dei dati per la tabella `Administrator`
 --
 
-INSERT INTO `Administrator` (`Username`, `Password`, `Cookie`) VALUES
-('emporiosolidale', '52acf32a7cd19b6d42b5581e4a0320e1', '6e35e5477a395a4f83417095d72c6f4c');
+INSERT INTO `Administrator` (`Username`, `Password`) VALUES
+('emporiosolidale', '$2y$12$FU6AcI57V/.0oH9moZSGzeF8BiTahpHuvuTqfYA9jCoJGmYRgZVyO');
 
 -- --------------------------------------------------------
 

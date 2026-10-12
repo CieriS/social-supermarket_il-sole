@@ -1,3 +1,4 @@
+<?php require __DIR__ . '/../src/bootstrap.php'; \IlSole\Auth\requireLogin(); ?>
 <!doctype html>
 <html lang="it" ondragstart='return false' onselectstart='return false'>
     <head>
@@ -13,12 +14,10 @@
         <Div>
             <?php
             
-                session_start();
 
                 /* File Required */
                     require('../FileInclude/FileRequired/Connessione.php');
                     require('../FileInclude/FileRequired/NavBars.php');
-                    require('../FileInclude/FileRequired/Cookie.php');
                     require('../FileInclude/FileRequired/Functions.php');
                 /*————*/
 
@@ -68,6 +67,7 @@
 
                                 $action=$_SERVER['PHP_SELF'];
                                 echo "<form action=" . $action . " method='POST' autocomplete='Off'>";
+                                echo \IlSole\Auth\csrfField();
                                 ?>
                                     <img ID="container" class="banner" src="../FileInclude/immagini/Intestazione.svg" />
 

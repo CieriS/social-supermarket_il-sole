@@ -9,11 +9,9 @@
         any output; the markup below only prints $Valori and $Errori.
     */
 
-    session_start();
+    require(__DIR__ . '/../src/bootstrap.php');
+    \IlSole\Auth\requireLogin();
 
-    require('../FileInclude/FileRequired/Connessione.php');
-    require(__DIR__ . '/../src/Html.php');
-    require(__DIR__ . '/../src/Auth.php');
     require(__DIR__ . '/../src/Scoring.php');
     require(__DIR__ . '/../src/ApplicationForm.php');
     require(__DIR__ . '/../src/AssessmentFields.php');
@@ -27,11 +25,6 @@
     use function IlSole\Record\field;
 
     use const IlSole\Record\KIND_NEW;
-
-    if ( !\IlSole\Auth\isLoggedIn($connection, $_COOKIE) ) {
-        header('Location: ../index.php');
-        exit;
-    }
 
     $TipoDomanda = $_SESSION['Domanda'] ?? '';
     if ( !in_array($TipoDomanda, \IlSole\Record\KINDS, true) ) {
@@ -145,6 +138,8 @@
             ?>
 
             <form action="ModuloDomanda.php" method="POST" autocomplete="Off">
+
+                <?php echo \IlSole\Auth\csrfField(); ?>
 
                 <img ID="container" class="banner" src="../FileInclude/immagini/Intestazione.svg" />
 

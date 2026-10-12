@@ -1,4 +1,6 @@
 <?php
+    require __DIR__ . '/../src/bootstrap.php';
+    \IlSole\Auth\requireLogin();
     require('../FileInclude/FileRequired/Connessione.php');
 
 

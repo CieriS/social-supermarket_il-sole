@@ -12,6 +12,8 @@ services:
       DB_USER: root
       DB_PASSWORD: dev
       DB_NAME: EmporioSolidale
+      # Shown on the login page: the account of the demo data in db/.
+      DEMO_LOGIN_HINT: emporiosolidale / IlSole
     depends_on:
       db:
         condition: service_healthy
