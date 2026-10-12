@@ -31,12 +31,12 @@
                         DIE();
                     } else {
                         if ( $_REQUEST['Codice'] != "" ) {
-                            $Codice=STRTOUPPER($_REQUEST['Codice']);
+                            $Codice=\IlSole\Input\cardCode($_POST['Codice']);
 
                             $Tessere="SELECT t.Codice, tr.CodFamiglia FROM tessera as t left join tesserarilasciata as tr on t.codice=tr.codicetessera ORDER BY Codice ASC;";
                             $risultatoTessera=mysqli_query($connection,$Tessere) OR DIE();
 
-                            while ( $riga=mysqli_fetch_array($risultatoTessera,MYSQLI_ASSOC) ) {
+                            while ( $riga=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoTessera,MYSQLI_ASSOC)) ) {
                                 if ( $Codice == $riga['Codice'] ) {
                                     ?>
                                         <script>
@@ -49,9 +49,10 @@
                             }
 
                             $insertCodice="INSERT INTO Tessera 
-                            VALUES ('".$Codice."');";
+                            VALUES (?);";
+                            $insertCodiceParametri=[$Codice];
 
-                            $Risultato=mysqli_query($connection,$insertCodice) OR DIE(mysqli_error($connection));
+                            $Risultato=mysqli_execute_query($connection,$insertCodice,$insertCodiceParametri) OR DIE(mysqli_error($connection));
 
                             ?>
                                 <script>
@@ -62,11 +63,12 @@
                         }
 
                         if ( isset($_REQUEST['Elimina']) ) {
-                            $Delete=$_REQUEST['Elimina'];
+                            $Delete=\IlSole\Input\cardCode($_POST['Elimina']);
 
-                            $deleteTessera="DELETE FROM Tessera WHERE Codice LIKE '".$Delete."';";
+                            $deleteTessera="DELETE FROM Tessera WHERE Codice = ?;";
+                            $deleteTesseraParametri=[$Delete];
 
-                            $Risultato=mysqli_query($connection,$deleteTessera) OR DIE(mysqli_error($connection));
+                            $Risultato=mysqli_execute_query($connection,$deleteTessera,$deleteTesseraParametri) OR DIE(mysqli_error($connection));
 
                             ?>
                                 <script>
@@ -127,7 +129,7 @@
                                     $Tessere="SELECT t.Codice, tr.CodFamiglia FROM tessera as t left join tesserarilasciata as tr on t.codice=tr.codicetessera ORDER BY Codice ASC;";
                                     $risultatoTessera=mysqli_query($connection,$Tessere) OR DIE();
                                     $i=0;
-                                    while ( $riga=mysqli_fetch_array($risultatoTessera,MYSQLI_ASSOC) ) {
+                                    while ( $riga=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoTessera,MYSQLI_ASSOC)) ) {
                                         $i++;
                                         /*echo "<tr>";*/
                                         if ( $i%2==0 ) {

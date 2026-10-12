@@ -1,5 +1,6 @@
 <?php
     require __DIR__ . '/../src/bootstrap.php';
+    require __DIR__ . '/../src/Export.php';
     \IlSole\Auth\requireLogin();
     require('../FileInclude/FileRequired/Connessione.php');
 
@@ -36,14 +37,6 @@
     }
 
 
-
-    // Filter Data
-    function filterData(&$str) {
-        $str = preg_replace("/\t/", "\\t", $str);
-        $str = preg_replace("/\r?\n/", "\\n", $str);
-        if (strstr($str, '"'))
-            $str = '"' . str_replace('"', '""', $str) . '"';
-    }
 
     // File Name & Content Header For Download
     $GiornoSettimana=DATE('D');
@@ -119,13 +112,12 @@
     // run loop through each row in $risultato
     foreach ($risultato as $row) {
         if (!$column_names) {
-            echo implode("\t", array_keys($row)) . "\n";
+            echo \IlSole\Export\exportLine(array_keys($row));
             $column_names = true;
         }
-        // The array_walk() function runs each array element in a user-defined function.
-        array_walk($row, 'filterData');
-        echo implode("\t", array_values($row)) . "\n";
+        echo \IlSole\Export\exportLine($row);
     }
+
     exit;
 ?>
     <script>

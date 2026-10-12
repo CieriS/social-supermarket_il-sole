@@ -10,3 +10,5 @@ require __DIR__ . '/../src/AssessmentFields.php';
 require __DIR__ . '/../src/Html.php';
 require __DIR__ . '/../src/ApplicationRecord.php';
 require __DIR__ . '/../src/Auth.php';
+require __DIR__ . '/../src/Input.php';
+require __DIR__ . '/../src/Export.php';

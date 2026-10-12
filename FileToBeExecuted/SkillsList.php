@@ -97,7 +97,7 @@
                         echo "</tr>";
 
                         $i=0;
-                        while ( $riga=mysqli_fetch_array($risultatoCompetenze,MYSQLI_ASSOC) ) {
+                        while ( $riga=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoCompetenze,MYSQLI_ASSOC)) ) {
                             $i++;
                             /*echo "<tr>";*/
                             if ( $i%2==0 ) {

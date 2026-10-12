@@ -24,15 +24,16 @@
                 if($_POST) {
 
                         /* RICEZIONE RADIO BUTTON */
-                            $Cod_Fiscale=$_REQUEST['Cod_Fiscale'];
+                            $Cod_Fiscale=\IlSole\Input\taxCode($_POST['Cod_Fiscale'] ?? '');
                         /*————*/
 
                         /* DELETE */
-                            $query="DELETE FROM Richiedente WHERE Cod_Fiscale LIKE '".$Cod_Fiscale."';";
+                            $query="DELETE FROM Richiedente WHERE Cod_Fiscale = ?;";
+                            $queryParametri=[$Cod_Fiscale];
                         /*————*/
 
                         /* ESECUZIONE DELLA DELETE */
-                            $risultato=mysqli_query($connection,$query) OR DIE(mysqli_error($connection));
+                            $risultato=mysqli_execute_query($connection,$query,$queryParametri) OR DIE(mysqli_error($connection));
                         /*————*/
                         
                         /* Dopo l'esecuzione del delete l'utente viene rimandato alla pagina dell'eliminazione */
@@ -59,6 +60,7 @@
 
                             /* SELECT DELLA GRADUATORIA ORDINATA PER IL PUNTEGGIO TOTALE DAL MAGGIORE AL MINORE */
                                 $query="SELECT * FROM Graduatoria;";
+                                $queryParametri=[];
                                 /* SELECT R.Cod_Fiscale, R.Cognome, R.Nome, R.nMembri, R.Telefono, R.Mail, P.PunteggioISEE, P.PunteggioPresenzaMinori, P.PunteggioDisoccupazione, P.PunteggioInvalidi, P.PunteggioSituazioneDebitoria, P.PunteggioBenefit, P.PunteggioTotale, TR.CodiceTessera, DATE_FORMAT(TR.DataOraRilascioTessera, '%d/%m/%Y') AS DataOraRilascioTessera, DATE_FORMAT(TR.DataOraScadenzaTessera, '%d/%m/%Y') AS DataOraScadenzaTessera, DATE_FORMAT(R.DataOraRitiroTessera, '%d/%m/%Y') AS DataOraRitiroTessera, DATE_FORMAT(R.DataOraStalloTessera, '%d/%m/%Y') AS DataOraStalloTessera  
                                 FROM Richiedente AS R LEFT OUTER JOIN TesseraRilasciata AS TR 
                                 ON R.Cod_Fiscale = TR.CodFamiglia 
@@ -70,7 +72,7 @@
                             /*————*/
 
                             /* ESECUZIONE DELLA SELECT */
-                                $risultato=mysqli_query($connection,$query) OR DIE(mysqli_error($connection));
+                                $risultato=mysqli_execute_query($connection,$query,$queryParametri) OR DIE(mysqli_error($connection));
                             /*————*/
 
                             /* Numero di righe */
@@ -186,7 +188,7 @@
                                                     <?php
 
                                                         $i=0;
-                                                        while($riga=mysqli_fetch_array($risultato,MYSQLI_ASSOC)) {
+                                                        while($riga=\IlSole\Html\escapeRow(mysqli_fetch_array($risultato,MYSQLI_ASSOC))) {
 
                                                             $i++;
                                                             /*echo "<tr>";*/

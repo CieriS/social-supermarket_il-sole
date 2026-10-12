@@ -20,10 +20,9 @@ services:
 
   db:
     image: mariadb:11
-    # Mirrors the XAMPP database the 2021 code was written against: table
-    # names compared case-insensitively (the code and the views mix casing)
-    # and no strict mode (empty strings are sent for missing dates and numbers).
-    command: --lower-case-table-names=1 --sql-mode=NO_ENGINE_SUBSTITUTION
+    # The 2021 code and views mix table-name casing (written on a
+    # case-insensitive filesystem), so names are compared case-insensitively.
+    command: --lower-case-table-names=1
     environment:
       MARIADB_ROOT_PASSWORD: dev
       MARIADB_DATABASE: EmporioSolidale

@@ -36,7 +36,7 @@
                             echo "<th class='Orangino'>Ordine</th><th class='Orangino'>Codice Tessera</th><th class='Orangino'>Codice Fiscale</th><th class='Orangino'>Nome</th><th class='Orangino'>Cognome</th><th class='Orangino'>Data Di Rilascio</th><th class='Orangino'>Data Di Ritiro</th>";        
                         echo "</tr>";
                             $i=0;
-                            while ( $riga=mysqli_fetch_array($risultatoStoricoTessere,MYSQLI_ASSOC) ) {
+                            while ( $riga=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoStoricoTessere,MYSQLI_ASSOC)) ) {
                                 $i++;
                                 /*echo "<tr>";*/
                                 if ( $i%2==0 ) {

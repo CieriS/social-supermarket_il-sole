@@ -43,7 +43,8 @@
 
                             $CalcoloDataStallo="SELECT * 
                             FROM Pass 
-                            WHERE Cod_Fiscale LIKE '".$CodiceFiscale."';";
+                            WHERE Cod_Fiscale = ?;";
+                            $CalcoloDataStalloParametri=[$CodiceFiscale];
                             /* SELECT R.Cod_Fiscale, R.Cognome, R.Nome, R.nMembri, P.PunteggioISEE, P.PunteggioPresenzaMinori, P.PunteggioDisoccupazione, P.PunteggioInvalidi, P.PunteggioSituazioneDebitoria, P.PunteggioBenefit, P.PunteggioTotale, TR.CodiceTessera, DATE_FORMAT(TR.DataOraRilascioTessera, '%d/%m/%Y') AS DataOraRilascioTessera, DATE_FORMAT(TR.DataOraScadenzaTessera, '%d/%m/%Y') AS DataOraScadenzaTessera, DATE_FORMAT(R.DataOraRitiroTessera, '%d/%m/%Y') AS DataOraRitiroTessera, DATE_FORMAT(R.DataOraStalloTessera, '%d/%m/%Y') AS DataOraStalloTessera  
                             FROM Richiedente AS R LEFT OUTER JOIN TesseraRilasciata AS TR 
                             ON R.Cod_Fiscale = TR.CodFamiglia 
@@ -57,31 +58,34 @@
                         /* Ricalcolo Stallo e setting var */
                             $RicalcoloStallo=mysqli_query($connection,$stallo) OR DIE(mysqli_error($connection));
 
-                            $nMesiStallo=mysqli_fetch_array($RicalcoloStallo,MYSQLI_ASSOC);
+                            $nMesiStallo=\IlSole\Html\escapeRow(mysqli_fetch_array($RicalcoloStallo,MYSQLI_ASSOC));
                             
-                            $RicalcoloDataStallo=mysqli_query($connection,$CalcoloDataStallo) OR DIE(mysqli_error($connection));
+                            $RicalcoloDataStallo=mysqli_execute_query($connection,$CalcoloDataStallo,$CalcoloDataStalloParametri) OR DIE(mysqli_error($connection));
 
-                            $DataStallo=mysqli_fetch_array($RicalcoloDataStallo,MYSQLI_ASSOC);
+                            $DataStallo=\IlSole\Html\escapeRow(mysqli_fetch_array($RicalcoloDataStallo,MYSQLI_ASSOC));
                         /*————*/
 
                         $inserTessera="INSERT INTO TesseraRilasciata (CodiceTessera, CodFamiglia, DataOraRilascioTessera, DataOraScadenzaTessera) VALUES 
-                        ('".$CodiceTessera."','".$CodiceFiscale."',NOW(),(NOW()+INTERVAL '".$nMesiStallo['nMesiStallo']."' MONTH));";
+                        (?,?,NOW(),(NOW()+INTERVAL ? MONTH));";
+                        $inserTesseraParametri=[$CodiceTessera,$CodiceFiscale,$nMesiStallo['nMesiStallo']];
 
                         $inserRich="UPDATE Richiedente 
                         SET DataOraRitiroTessera = NULL, DataOraStalloTessera = NULL 
-                        WHERE Cod_Fiscale = '".$CodiceFiscale."';";
+                        WHERE Cod_Fiscale = ?;";
+                        $inserRichParametri=[$CodiceFiscale];
 
-                        $insertStoricoTessere="INSERT INTO StoricoTessere ( CodiceTessera, CodFamiglia, DataRilascio ) VALUES ('".$CodiceTessera."','".$CodiceFiscale."',NOW());";
+                        $insertStoricoTessere="INSERT INTO StoricoTessere ( CodiceTessera, CodFamiglia, DataRilascio ) VALUES (?,?,NOW());";
+                        $insertStoricoTessereParametri=[$CodiceTessera,$CodiceFiscale];
 
                         /*————*/
 
                         /* Esecuzione Assegnazione */
 
-                            $risultatoinserTessera=mysqli_query($connection,$inserTessera) OR DIE(mysqli_error($connection));
+                            $risultatoinserTessera=mysqli_execute_query($connection,$inserTessera,$inserTesseraParametri) OR DIE(mysqli_error($connection));
                             
-                            $risultatoinserRich=mysqli_query($connection,$inserRich) OR DIE(mysqli_error($connection));
+                            $risultatoinserRich=mysqli_execute_query($connection,$inserRich,$inserRichParametri) OR DIE(mysqli_error($connection));
                             
-                            $risultatoinsertStoricoTessere=mysqli_query($connection,$insertStoricoTessere) OR DIE(mysqli_error($connection));
+                            $risultatoinsertStoricoTessere=mysqli_execute_query($connection,$insertStoricoTessere,$insertStoricoTessereParametri) OR DIE(mysqli_error($connection));
 
                         /*————*/
 

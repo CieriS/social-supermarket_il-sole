@@ -23,3 +23,12 @@ function options(array $values, string $current, array $labels = []): string
     }
     return $html;
 }
+
+/*
+    A row read from the database with its text made safe for HTML; null stays
+    null, so it can wrap the fetch call of a `while` loop.
+*/
+function escapeRow(?array $row): ?array
+{
+    return $row === null ? null : array_map(fn (mixed $value) => is_string($value) ? e($value) : $value, $row);
+}

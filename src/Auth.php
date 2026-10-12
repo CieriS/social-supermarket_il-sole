@@ -16,6 +16,10 @@ use function IlSole\Html\e;
 /* Seconds without requests after which the operator has to log in again */
 const SESSION_TTL = 1800;
 
+/* Wrong passwords allowed from one address within the window, in seconds */
+const MAX_FAILURES = 5;
+const FAILURE_WINDOW = 900;
+
 /* --- Pure checks --- */
 
 function sessionIsValid(array $session, int $now): bool
@@ -32,7 +36,31 @@ function csrfMatches(array $session, mixed $token): bool
     return is_string($expected) && $expected !== '' && is_string($token) && hash_equals($expected, $token);
 }
 
+/* $failures: times (Unix seconds) of the wrong passwords typed from one address */
+function isLockedOut(array $failures, int $now): bool
+{
+    $recent = array_filter($failures, fn (int $time) => $time <= $now && $now - $time < FAILURE_WINDOW);
+    return count($recent) >= MAX_FAILURES;
+}
+
 /* --- Session and database --- */
+
+function tooManyFailures(mysqli $db, string $address, int $now): bool
+{
+    $db->execute_query('DELETE FROM TentativiAccesso WHERE Quando < ?', [$now - FAILURE_WINDOW]);
+    $rows = $db->execute_query('SELECT Quando FROM TentativiAccesso WHERE Indirizzo = ?', [$address])->fetch_all();
+    return isLockedOut(array_map(fn (array $row) => (int) $row[0], $rows), $now);
+}
+
+function recordFailure(mysqli $db, string $address, int $now): void
+{
+    $db->execute_query('INSERT INTO TentativiAccesso (Indirizzo, Quando) VALUES (?, ?)', [$address, $now]);
+}
+
+function clearFailures(mysqli $db, string $address): void
+{
+    $db->execute_query('DELETE FROM TentativiAccesso WHERE Indirizzo = ?', [$address]);
+}
 
 function startSession(): void
 {

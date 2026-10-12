@@ -24,7 +24,7 @@
                 if($_POST) {
 
                         /* RICEZIONE VARIABILI */
-                            $CodiceFiscale=$_REQUEST['Cod_Fiscale'];
+                            $CodiceFiscale=\IlSole\Input\taxCode($_POST['Cod_Fiscale'] ?? '');
                         /*————*/
 
                         /* SELECT STALLO */
@@ -34,25 +34,28 @@
 
                         /* Ricalcolo Stallo e setting var */
                             $RicalcoloStallo=mysqli_query($connection,$stallo) OR DIE(mysqli_error($connection));
-                            $nMesiStallo=mysqli_fetch_array($RicalcoloStallo,MYSQLI_ASSOC);
+                            $nMesiStallo=\IlSole\Html\escapeRow(mysqli_fetch_array($RicalcoloStallo,MYSQLI_ASSOC));
                         /*————*/
 
                         /* Ritiro Tessera */
                             $UpRichied="UPDATE Richiedente 
-                            SET DataOraRitiroTessera = NOW(), DataOraStalloTessera = (NOW()+ INTERVAL '".$nMesiStallo['nMesiStallo']."' MONTH) WHERE Cod_Fiscale LIKE '".$CodiceFiscale."';";
+                            SET DataOraRitiroTessera = NOW(), DataOraStalloTessera = (NOW()+ INTERVAL ? MONTH) WHERE Cod_Fiscale = ?;";
+                            $UpRichiedParametri=[$nMesiStallo['nMesiStallo'],$CodiceFiscale];
 
-                            $DeleteTessera="DELETE FROM TesseraRilasciata WHERE CodFamiglia LIKE '".$CodiceFiscale."';";
+                            $DeleteTessera="DELETE FROM TesseraRilasciata WHERE CodFamiglia = ?;";
+                            $DeleteTesseraParametri=[$CodiceFiscale];
 
-                            $UpdateStorico="UPDATE StoricoTessere SET DataRitiro = NOW() WHERE CodFamiglia LIKE '".$CodiceFiscale."' ORDER BY OrdineCronologico DESC LIMIT 1;";
+                            $UpdateStorico="UPDATE StoricoTessere SET DataRitiro = NOW() WHERE CodFamiglia = ? ORDER BY OrdineCronologico DESC LIMIT 1;";
+                            $UpdateStoricoParametri=[$CodiceFiscale];
                         /*————*/
 
                         /* Esecuzione Assegnazione */
                             
-                            $risultatoUpRichied=mysqli_query($connection,$UpRichied) OR DIE(mysqli_error($connection));
+                            $risultatoUpRichied=mysqli_execute_query($connection,$UpRichied,$UpRichiedParametri) OR DIE(mysqli_error($connection));
                             
-                            $risultato=mysqli_query($connection,$DeleteTessera) OR DIE(mysqli_error($connection));
+                            $risultato=mysqli_execute_query($connection,$DeleteTessera,$DeleteTesseraParametri) OR DIE(mysqli_error($connection));
 
-                            $risultatoStorico=mysqli_query($connection,$UpdateStorico) OR DIE(mysqli_error($connection));
+                            $risultatoStorico=mysqli_execute_query($connection,$UpdateStorico,$UpdateStoricoParametri) OR DIE(mysqli_error($connection));
 
                         /*————*/
 
@@ -204,7 +207,7 @@
                                                     <?php
 
                                                         $i=0;
-                                                        while($riga=mysqli_fetch_array($risultato,MYSQLI_ASSOC)) {
+                                                        while($riga=\IlSole\Html\escapeRow(mysqli_fetch_array($risultato,MYSQLI_ASSOC))) {
 
                                                             $i++;
                                                             /*echo "<tr>";*/

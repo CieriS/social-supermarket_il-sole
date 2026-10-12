@@ -67,11 +67,12 @@ anything, through the modules in `src/`:
 | `ApplicationRecord.php` | Submitted form → record to store, its checks, and back        |
 | `AssessmentFields.php`  | Markup of the "Griglia di valutazione" section                |
 | `ApplicationStore.php`  | Reads and writes a record (prepared statements, transaction)  |
-| `Auth.php`, `Html.php`  | Login check, HTML escaping                                    |
+| `Auth.php`, `Html.php`  | Login, form tokens, HTML escaping                             |
+| `Input.php`, `Export.php` | Request values, export cells                                |
 
-Everything except `ApplicationStore.php` and `Auth.php` is pure and covered by
-the unit tests in `tests/`; the two that touch the database are exercised by
-the smoke test. The only runtime dependency is PHP itself: Composer is used for
+Everything is pure and covered by the unit tests in `tests/`, except
+`ApplicationStore.php` and the session and database half of `Auth.php`, which
+are exercised by the smoke test. The only runtime dependency is PHP itself: Composer is used for
 PHPUnit alone.
 
 A form with mistakes is not saved: it comes back filled in, with the list of
@@ -85,6 +86,15 @@ Every page starts by loading `src/bootstrap.php` and calling
 session (HTTP-only cookie, expiring after 30 minutes without requests);
 passwords are stored with `password_hash`. Every form carries a token of the
 session and a POST without it is refused.
+
+Five wrong passwords from the same address within fifteen minutes lock the
+login for that address until the window has passed.
+
+What comes from a request is reduced to the expected shape by
+`src/Input.php` (tax codes, card codes, e-mail addresses, numbers) and reaches
+the database only as a parameter; what comes from the database is escaped
+before it is printed (`IlSole\Html\escapeRow`). Cells of the export that a
+spreadsheet would run as formulas are made inert (`src/Export.php`).
 
 ## Scoring
 
@@ -116,16 +126,16 @@ stored scores are not recalculated.
 
 ## Status
 
-Known gaps, in the order they are being addressed:
+Known gaps:
 
-1. Outside the application form, queries are still built by string
-   concatenation and output is not escaped. Every page is behind the login,
-   so only a logged-in operator can reach them, but it is not safe to expose
-   as is.
-2. The members outside the ISEE household, which the paper form lists, are
-   not collected: the original page asked for them but never stored them.
-3. Changing the points of the grid does not recalculate the stored scores.
+1. The members outside the ISEE household, which the paper form lists, are
+   not collected (issue #6).
+2. Changing the points of the grid does not recalculate the stored scores.
+3. Apart from the application form, the pages still mix queries, logic and
+   markup, as they did in 2021; their queries are parameterised and what they
+   print is escaped, but they are not covered by unit tests, only by the
+   smoke test.
+4. The export is a tab-separated file served with an `.xls` name.
 
-The database container compares table names case-insensitively and runs
-without strict mode, and PHP runs with output buffering on, mirroring the XAMPP
-setup the code was written for.
+The database container compares table names case-insensitively, because the
+code and the views mix their casing.

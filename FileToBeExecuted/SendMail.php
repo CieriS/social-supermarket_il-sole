@@ -50,9 +50,13 @@
 
             if($_POST){
 
-                $Destinatario = $_REQUEST['Destinatario'];
-                $Oggetto = $_REQUEST['Oggetto'];
-                $Messaggio = $_REQUEST['Messaggio'];
+                /* Un gruppo di famiglie oppure un indirizzo */
+                $Destinatario = \IlSole\Input\text($_POST['Destinatario'] ?? '');
+                if ( !in_array($Destinatario, ['Tutti', 'TuttiRestituzione', 'TuttiStallo'], true) ) {
+                    $Destinatario = \IlSole\Input\email($Destinatario);
+                }
+                $Oggetto = \IlSole\Input\singleLine($_POST['Oggetto'] ?? '');
+                $Messaggio = \IlSole\Input\text($_POST['Messaggio'] ?? '');
                 $headers = 'From: noreply@example.com' . "\r\n" . 'Reply-To: noreply@example.com' . "\r\n" . 'X-Mailer: PHP/' . phpversion();
                 
 
@@ -95,6 +99,13 @@
                         </script>
                     <?php
 
+                } else if ( $Destinatario == '' ) {
+                    ?>
+                        <script>
+                            alert("Destinatario non valido: mail non inviata");
+                            window.location.replace("SendMail.php");
+                        </script>
+                    <?php
                 } else {
 
                     mail( $Destinatario, $Oggetto, $Messaggio, $headers/*, $Parameters */ );
@@ -142,7 +153,7 @@
                                             <option value='TuttiRestituzione'>Richied. che devono restituire tessera che scade fra 7 giorni o &egrave; gi&agrave; scaduta</option>
                                             <option value='TuttiStallo'>Richied. il cui periodo di stallo &egrave; terminato o sta per terminare</option>
                                             <?php
-                                                while ( $riga=mysqli_fetch_array($risultatoMail,MYSQLI_ASSOC) ) {
+                                                while ( $riga=\IlSole\Html\escapeRow(mysqli_fetch_array($risultatoMail,MYSQLI_ASSOC)) ) {
                                                     echo "<option value='".$riga['Mail']."'>".$riga['Cod_Fiscale']." - ".$riga['Nome']." - ".$riga['Cognome']." - ".$riga['Mail']."</option>";
                                                 }
                                             ?>

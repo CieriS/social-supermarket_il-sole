@@ -1210,6 +1210,16 @@ ALTER TABLE `Uscite`
   ADD CONSTRAINT `uscite_ibfk_1` FOREIGN KEY (`CodFamiglia`) REFERENCES `Richiedente` (`Cod_Fiscale`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Password sbagliate recenti, per fermare chi prova a indovinarla
+--
+
+CREATE TABLE `TentativiAccesso` (
+  `Indirizzo` varchar(45) NOT NULL,
+  `Quando` int(11) NOT NULL,
+  KEY `Indirizzo` (`Indirizzo`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
 -- Punti della griglia di valutazione, modificabili dalla configurazione
 --
 
