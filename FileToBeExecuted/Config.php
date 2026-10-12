@@ -19,7 +19,27 @@
                 require('../FileInclude/FileRequired/NavBars.php');
                 require(__DIR__ . '/../src/Scoring.php');
                 require(__DIR__ . '/../src/Rules.php');
+                require(__DIR__ . '/../src/ApplicationForm.php');
+                require(__DIR__ . '/../src/ApplicationRecord.php');
+                require(__DIR__ . '/../src/ApplicationStore.php');
             /*————*/
+
+            /* Ricalcolo di tutti i punteggi con la configurazione salvata */
+            if( isset($_POST['Ricalcola']) ) {
+                try {
+                    $Ricalcolate=\IlSole\Store\recalculateScores($connection, new DateTimeImmutable('today'));
+                    $Esito="Graduatoria ricalcolata\nDomande aggiornate: ".$Ricalcolate;
+                } catch ( InvalidArgumentException $Errore ) {
+                    $Esito="Graduatoria non ricalcolata\nUna domanda ha dati che non rientrano negli intervalli configurati";
+                }
+                ?>
+                    <script>
+                        alert(<?php echo json_encode($Esito, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>);
+                        window.location.replace("List.php");
+                    </script>
+                <?php
+                DIE();
+            }
 
             if($_POST){
 
@@ -239,6 +259,16 @@
                         mysqli_close($connection);
                     /*————*/
 
+                echo "</form>";
+
+                /* Ricalcolo: un form a parte, non tocca la configurazione qui sopra */
+                echo "<form action='Config.php' method='POST'>";
+                echo \IlSole\Auth\csrfField();
+                echo "<div class='centro'><table class='Set' border=1>";
+                echo "<tr><th Class='LightBlue'>Ricalcola Graduatoria</th></tr>";
+                echo "<tr><th Class='Orangino'>Ricalcola il punteggio di tutte le domande con i punti e gli indicatori ISEE salvati e con le et&agrave; di oggi</th></tr>";
+                echo "<tr><th class='submit'><input type='submit' name='Ricalcola' value='Ricalcola' /></th></tr>";
+                echo "</table></div>";
                 echo "</form>";
             
             }
