@@ -14,9 +14,12 @@
 
     $Errore = null;
     if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
-        \IlSole\Auth\requireCsrfToken();
         $Indirizzo = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
-        if ( \IlSole\Auth\tooManyFailures($connection, $Indirizzo, time()) ) {
+        if ( !\IlSole\Auth\csrfMatches($_SESSION, $_POST['csrf'] ?? null) ) {
+            /* The page was opened before the session it belongs to ended (a long wait, a
+               restart of the server): the form below carries the token of the new one */
+            $Errore = "La pagina era scaduta: inserire di nuovo username e password";
+        } elseif ( \IlSole\Auth\tooManyFailures($connection, $Indirizzo, time()) ) {
             $Errore = "Troppi tentativi sbagliati: riprovare tra qualche minuto";
         } elseif ( \IlSole\Auth\logIn($connection, (string) ($_POST['username'] ?? ''), (string) ($_POST['psw'] ?? '')) ) {
             \IlSole\Auth\clearFailures($connection, $Indirizzo);

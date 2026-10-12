@@ -64,11 +64,17 @@ code="$(curl -sS -b "$tmp/jar" -c "$tmp/jar" -o "$tmp/body" -w '%{http_code}' --
 sql 'DELETE FROM TentativiAccesso'
 report "login after too many wrong passwords" "$status"
 
+# A login sent from a page of an ended session (no token, or an old one) does
+# not get in: the form comes back asking to type the credentials again.
 status=ok
-code="$(curl -sS -b "$tmp/jar" -o /dev/null -w '%{http_code}' \
-    --data-urlencode "username=$user" --data-urlencode "psw=$password" "$base/index.php")"
-[ "$code" = 400 ] || status="FAIL login without the form token answered $code"
-report "login without the form token" "$status"
+for stale in '' 'csrf=0123456789abcdef'; do
+    code="$(curl -sS -b "$tmp/jar" -c "$tmp/jar" -o "$tmp/body" -w '%{http_code}' ${stale:+--data-urlencode "$stale"} \
+        --data-urlencode "username=$user" --data-urlencode "psw=$password" "$base/index.php")"
+    [ "$code" = 200 ] && grep -q 'La pagina era scaduta' "$tmp/body" || status="FAIL login with a stale page answered $code"
+    code="$(curl -sS -b "$tmp/jar" -o /dev/null -w '%{http_code}' "$base/FileToBeExecuted/List.php")"
+    [ "$code" = 302 ] || status="FAIL logged in from a stale page"
+done
+report "login from a stale page" "$status"
 
 csrf="$(form_token index.php)"
 code="$(curl -sS -b "$tmp/jar" -c "$tmp/jar" -o /dev/null -w '%{http_code}' --data-urlencode "csrf=$csrf" \
