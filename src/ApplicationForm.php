@@ -1,8 +1,8 @@
 <?php
 
 /*
-    Reads the application form (FileToBeExecuted/PunteggioNew.php and
-    PunteggioChange.php) into the structure scored by src/Scoring.php.
+    Reads the application form (FileToBeExecuted/ModuloDomanda.php) into the
+    structure scored by src/Scoring.php.
 
     Pure: takes the submitted fields as an array, touches nothing else.
 */

@@ -51,7 +51,7 @@
                                 if( $Domanda == 'Domanda Nuova' ) {
                                     ?>
                                         <script>
-                                            window.location.replace('PunteggioNew.php');
+                                            window.location.replace('ModuloDomanda.php');
                                         </script>
                                     <?php
                                 }
@@ -59,7 +59,7 @@
                                 if( $Domanda == 'Domanda Di Modifica' || $Domanda == 'Domanda Reiterata' ) {
                                     ?>
                                         <script>
-                                            window.location.replace('PunteggioChange.php');
+                                            window.location.replace('ModuloDomanda.php');
                                         </script>
                                     <?php
                                 }

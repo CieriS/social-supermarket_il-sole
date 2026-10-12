@@ -1061,3 +1061,16 @@ h3{
         display: none;
     }
 }
+
+/* Messaggi che spiegano perché la domanda non è stata salvata */
+.Errori{
+    width: 70%;
+    margin: 2vw auto;
+    padding: 1vw 2vw;
+    border: 2px solid firebrick;
+    border-radius: 8px;
+    background-color: mistyrose;
+    color: firebrick;
+    text-align: left;
+    font-size: 1.1vw;
+}

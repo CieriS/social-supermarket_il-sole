@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Logs in with the demo account and opens every page, failing on HTTP errors,
 # PHP fatal errors or a bounce back to the login page. Then submits a new
-# application, changes a rule of the grid in the configuration and submits
-# another one, checking what ends up in the database each time.
+# application (with mistakes, then right, then twice), changes a rule of the
+# grid in the configuration and submits an update, checking what ends up in
+# the database each time.
 # PHP warnings are reported but tolerated unless STRICT=1.
 set -euo pipefail
 
@@ -24,6 +25,8 @@ if ! grep -q CookieUser "$tmp/jar"; then
 fi
 
 for page in index.php home.html FileToBeExecuted/*.php; do
+    # Needs the choices made in Domanda.php: covered by the flows below.
+    [ "$page" = FileToBeExecuted/ModuloDomanda.php ] && continue
     code="$(curl -sS -b "$tmp/jar" -o "$tmp/body" -w '%{http_code}' "$base/$page")"
     warnings="$(grep -cE '<b>(Warning|Notice|Deprecated)</b>' "$tmp/body" || true)"
     status=ok
@@ -84,16 +87,22 @@ application_value() {
     esac
 }
 
-# submit_application <kind> <page> [field=value ...]: opens the form for that
-# kind of application and sends every field it has, with the values above
-# unless overridden.
-submit_application() {
-    local kind="$1" page="$2" name value override args=()
-    shift 2
+# open_form <kind>: chooses the kind of application in Domanda.php and
+# downloads the form.
+open_form() {
     curl -sS -b "$tmp/jar" -c "$tmp/jar" -o /dev/null \
-        --data-urlencode "TipoDiDomanda=$kind" -d nComponentiNucleoFamiliare=3 \
+        --data-urlencode "TipoDiDomanda=$1" -d nComponentiNucleoFamiliare=3 \
         --data-urlencode "CodiceFiscale=$tax_code" "$base/FileToBeExecuted/Domanda.php"
-    curl -sS -b "$tmp/jar" -o "$tmp/form" "$base/FileToBeExecuted/$page"
+    curl -sS -b "$tmp/jar" -o "$tmp/form" "$base/FileToBeExecuted/ModuloDomanda.php"
+}
+
+# submit_application <kind> [field=value ...]: opens the form for that kind of
+# application and sends every field it has, with the values above unless
+# overridden.
+submit_application() {
+    local kind="$1" name value override args=()
+    shift
+    open_form "$kind"
     while IFS= read -r name; do
         value="$(application_value "$name")"
         [ "$name" = TipoDiDomanda ] && value="$kind"
@@ -102,7 +111,7 @@ submit_application() {
         done
         args+=(--data-urlencode "$name=$value")
     done < <(grep -oE "name=['\"][^'\"]+['\"]" "$tmp/form" | sed -E "s/name=['\"]([^'\"]+)['\"]/\1/" | sort -u)
-    curl -sS -b "$tmp/jar" -o "$tmp/body" "${args[@]}" "$base/FileToBeExecuted/$page"
+    curl -sS -b "$tmp/jar" -o "$tmp/body" "${args[@]}" "$base/FileToBeExecuted/ModuloDomanda.php"
 }
 
 # check <label> <expected scores> <expected assessment>
@@ -123,8 +132,27 @@ check() {
     [ "$status" = ok ] || failed=1
 }
 
-submit_application 'Domanda Nuova' PunteggioNew.php
+# A form with mistakes is not saved and comes back filled in, with the reasons.
+submit_application 'Domanda Nuova' 'DataNascitaRichiedente=31/02/1980' 'Mail=nobody'
+status=ok
+[ "$(sql "SELECT COUNT(*) FROM Richiedente WHERE Cod_Fiscale='$tax_code'")" = 0 ] || status="FAIL saved despite the mistakes"
+grep -q 'Data di nascita del richiedente' "$tmp/body" || status="FAIL birth date mistake not reported"
+grep -q 'E-mail: indirizzo non valido' "$tmp/body" || status="FAIL e-mail mistake not reported"
+grep -q 'name="CognomeRichiedente" maxlength=.30. value="Smoke"' "$tmp/body" || status="FAIL typed values lost"
+if grep -qE '<b>(Fatal error|Parse error|Warning)</b>' "$tmp/body"; then status="FAIL PHP error"; fi
+printf '%-46s %s\n' "application with mistakes" "$status"
+[ "$status" = ok ] || failed=1
+
+submit_application 'Domanda Nuova'
 check 'new application' '80 10 15 10 9 -22 102' '0 0 1 4 2'
+
+# The same applicant cannot be entered twice as new.
+submit_application 'Domanda Nuova' IndiceISEE=7000
+status=ok
+grep -q 'gi&agrave; registrato\|già registrato' "$tmp/body" || status="FAIL duplicate not reported"
+[ "$(sql "SELECT ISEE FROM Richiedente WHERE Cod_Fiscale='$tax_code'")" = 2000 ] || status="FAIL duplicate overwrote the applicant"
+printf '%-46s %s\n' "duplicate application" "$status"
+[ "$status" = ok ] || failed=1
 
 # Configuration: every field is sent back as it is, except one rule of the grid.
 curl -sS -b "$tmp/jar" -o "$tmp/form" "$base/FileToBeExecuted/Config.php"
@@ -142,23 +170,33 @@ if grep -qE '<b>(Fatal error|Parse error)</b>' "$tmp/body"; then status="FAIL fa
 printf '%-46s %s\n' "configuration" "$status"
 [ "$status" = ok ] || failed=1
 
-# The update form shows the stored assessment. Submitting it is not checked:
-# saving an update does not work yet (see the README).
-curl -sS -b "$tmp/jar" -c "$tmp/jar" -o /dev/null \
-    --data-urlencode 'TipoDiDomanda=Domanda Di Modifica' -d nComponentiNucleoFamiliare=3 \
-    --data-urlencode "CodiceFiscale=$tax_code" "$base/FileToBeExecuted/Domanda.php"
-curl -sS -b "$tmp/jar" -o "$tmp/body" "$base/FileToBeExecuted/PunteggioChange.php"
+# The update form comes filled with what is stored.
+open_form 'Domanda Di Modifica'
 status=ok
-grep -q "name='InvaliditaGraveMinori' min='0' max='22' value='1'" "$tmp/body" || status="FAIL stored disability not shown"
-grep -q "<option value='4' selected>4</option>" "$tmp/body" || status="FAIL stored other debts not shown"
-if grep -qE '<b>(Fatal error|Parse error)</b>' "$tmp/body"; then status="FAIL fatal error"; fi
+for expected in \
+    'name="CognomeRichiedente" maxlength=.30. value="Smoke"' \
+    'name="DataNascitaRichiedente" value="20/04/1980"' \
+    "name='DataNascita\[3\]' value=\"30/12/$minor_year\"" \
+    "<option value='Coniuge' selected>" \
+    "<option value='Popolare' selected>" \
+    "name='Anno\[7\]' value=\"2025\"" \
+    "name='ValoreENT\[5\]' value=\"500\"" \
+    "name='InvaliditaGraveMinori' min='0' max='22' value='1'" \
+    "<option value='4' selected>4</option>"; do
+    grep -q "$expected" "$tmp/form" || status="FAIL not filled in: $expected"
+done
+if grep -qE '<b>(Fatal error|Parse error|Warning)</b>' "$tmp/form"; then status="FAIL PHP error"; fi
 printf '%-46s %s\n' "update form" "$status"
 [ "$status" = ok ] || failed=1
 
-# A second application, after the rule change: higher ISEE, an adult with
-# total disability, no other debts. The minors score follows the new rule.
-sql "DELETE FROM Richiedente WHERE Cod_Fiscale='$tax_code'"
-submit_application 'Domanda Nuova' PunteggioNew.php IndiceISEE=4000 InvaliditaTotaleAdulti=1 AltriDebiti=0
-check 'application after the rule change' '60 12 15 20 5 -22 90' '1 0 1 0 2'
+# Update: higher ISEE, an adult with total disability, no other debts. The
+# minors score follows the rule just changed; the members are still three.
+submit_application 'Domanda Di Modifica' IndiceISEE=4000 InvaliditaTotaleAdulti=1 AltriDebiti=0
+check 'updated application' '60 12 15 20 5 -22 90' '1 0 1 0 2'
+status=ok
+stored="$(sql "SELECT CONCAT_WS(' ', R.ISEE, (SELECT COUNT(*) FROM Entrate WHERE CodFamiglia='$tax_code'), (SELECT COUNT(*) FROM SituazioneSocioSanitaria WHERE CodFamiglia='$tax_code')) FROM Richiedente R WHERE R.Cod_Fiscale='$tax_code'")"
+[ "$stored" = '4000 1 1' ] || status="FAIL applicant and rows stored '$stored', expected '4000 1 1'"
+printf '%-46s %s\n' "updated rows" "$status"
+[ "$status" = ok ] || failed=1
 
 exit "$failed"

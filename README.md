@@ -13,7 +13,7 @@ spirit. All the data in the repository is invented.
 ## Features
 
 - Ranking of the applicants with the score broken down by criterion
-- New application and application update forms, with automatic scoring
+- One form for new, updated and repeated applications, with automatic scoring
 - Shopping cards: assign, withdraw, manage, history
 - Applicant details, family members' skills, applicant removal
 - E-mail to applicants, ranking export, scoring configuration
@@ -46,19 +46,38 @@ The login page is pre-filled with the demo administrator account.
 | `index.php`         | Login                                                |
 | `FileToBeExecuted/` | One PHP page per feature                             |
 | `FileInclude/`      | Shared PHP includes, stylesheets, scripts and images |
-| `src/`              | Scoring, rules and form reading, as pure functions   |
+| `src/`              | Scoring, rules, form reading and storage             |
 | `tests/`            | Unit tests (PHPUnit)                                 |
 | `db/`               | Schema and demo data loaded on first start           |
 | `docs/`             | Evaluation grid and E/R diagrams                     |
 | `scripts/`          | Smoke test: every page, applications, configuration  |
 
-## Scoring
+## How the application form works
 
-The rules of the grid live in [src/Scoring.php](src/Scoring.php) as pure
-functions, tested case by case in [tests/ScoringTest.php](tests/ScoringTest.php).
-[src/ApplicationForm.php](src/ApplicationForm.php) turns the submitted form
-into the structure they score. The only runtime dependency is PHP itself:
-Composer is used for PHPUnit alone.
+[ModuloDomanda.php](FileToBeExecuted/ModuloDomanda.php) is the only page for
+new, updated and repeated applications. It does all its work before printing
+anything, through the modules in `src/`:
+
+| Module                  | Role                                                          |
+| ----------------------- | ------------------------------------------------------------- |
+| `Scoring.php`           | The rules of the grid, one pure function per criterion        |
+| `Rules.php`             | The configurable points: reading, validation, labels          |
+| `ApplicationForm.php`   | Submitted form → structure to score                           |
+| `ApplicationRecord.php` | Submitted form → record to store, its checks, and back        |
+| `AssessmentFields.php`  | Markup of the "Griglia di valutazione" section                |
+| `ApplicationStore.php`  | Reads and writes a record (prepared statements, transaction)  |
+| `Auth.php`, `Html.php`  | Login check, HTML escaping                                    |
+
+Everything except `ApplicationStore.php` and `Auth.php` is pure and covered by
+the unit tests in `tests/`; the two that touch the database are exercised by
+the smoke test. The only runtime dependency is PHP itself: Composer is used for
+PHPUnit alone.
+
+A form with mistakes is not saved: it comes back filled in, with the list of
+what to fix. An update keeps the shopping card and the skills linked to the
+members.
+
+## Scoring
 
 Where the grid can be read in more than one way, this is the reading taken:
 
@@ -88,16 +107,14 @@ stored scores are not recalculated.
 
 ## Status
 
-The application runs as it was handed in. Known gaps, in the order they are
-being addressed:
+Known gaps, in the order they are being addressed:
 
-1. Saving an update of an application does not work: the form only shows the
-   rows already stored and the queries overwrite every row of the family.
-   It was unfinished in 2021 and goes away with gap 3.
-2. Queries are built by string concatenation, passwords are hashed with MD5 and
-   some pages skip the login check: not safe to expose as is.
-3. The new/update application pages duplicate each other and mix scoring, SQL
-   and markup.
+1. Outside the application form, queries are built by string concatenation
+   and output is not escaped; passwords are hashed with MD5 and some pages
+   skip the login check: not safe to expose as is.
+2. The members outside the ISEE household, which the paper form lists, are
+   not collected: the original page asked for them but never stored them.
+3. Changing the points of the grid does not recalculate the stored scores.
 
 The database container compares table names case-insensitively and runs
 without strict mode, and PHP runs with output buffering on, mirroring the XAMPP
