@@ -23,7 +23,8 @@
             /* Mailing */
 
                 /* Tutte le Mails */
-                    $arrayMail="SELECT Cod_Fiscale, Nome, Cognome, Mail AS Mail FROM Richiedente GROUP BY Mail ORDER BY Mail ASC;";
+                    /* Una riga per indirizzo: se due richiedenti hanno la stessa mail vale il primo per codice fiscale */
+                    $arrayMail="SELECT Cod_Fiscale, Nome, Cognome, Mail FROM Richiedente WHERE Cod_Fiscale IN (SELECT MIN(Cod_Fiscale) FROM Richiedente GROUP BY Mail) ORDER BY Mail ASC;";
 
                     $arrayMailResti="SELECT DISTINCT(R.Mail) AS Mail, CURDATE() AS Oggi, DataOraScadenzaTessera FROM Richiedente AS R INNER JOIN TesseraRilasciata AS TR ON TR.CodFamiglia = R.Cod_Fiscale HAVING (Oggi + INTERVAL 7 DAY) >= DataOraScadenzaTessera ORDER BY Mail ASC;";
                     

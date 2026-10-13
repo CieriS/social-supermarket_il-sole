@@ -18,7 +18,7 @@ failed=0
 user="${SMOKE_USER:-emporiosolidale}"
 password="${SMOKE_PASSWORD:-IlSole}"
 
-sql() { docker compose exec -T db mariadb -N -uroot -pdev EmporioSolidale -e "$1"; }
+sql() { docker compose exec -T db mysql -N -uroot -pdev EmporioSolidale -e "$1" 2> /dev/null; }
 
 report() {
     printf '%-46s %s\n' "$1" "$2"
