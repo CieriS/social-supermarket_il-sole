@@ -14,9 +14,9 @@
 
     /* Demo: whoever opens the login page finds the data as it was, at most once per interval */
     if ( \IlSole\Config\demoMode() && $_SERVER['REQUEST_METHOD'] === 'GET' ) {
-        require __DIR__ . '/src/Demo.php';
         $Minuti = max(1, (int) \IlSole\Config\setting('DEMO_RESET_MINUTES', '60'));
         try {
+            require __DIR__ . '/src/Demo.php';
             \IlSole\Demo\resetIfDue($connection, __DIR__ . '/db', time(), $Minuti * 60);
         } catch ( Throwable $ErroreRipristino ) {
             /* The demo stays usable with the data it has; the reason is shown under the form */

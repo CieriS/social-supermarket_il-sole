@@ -16,6 +16,9 @@ return [
     'DEMO_MODE' => '1',
     'DEMO_RESET_MINUTES' => '60',
 
+    /* '1' only while setting up a new host: prints fatal errors instead of an empty page */
+    'SHOW_ERRORS' => '',
+
     /* Shown on the login page with a button that fills it in: "username / password" */
     'DEMO_LOGIN_HINT' => 'emporiosolidale / IlSole',
 ];

@@ -55,6 +55,12 @@ too. The redirect has to be narrowed to the home page only, for example in the
 RedirectMatch 301 ^/$ https://example.com/
 ```
 
+## Checking what is online
+
+Every page sends an `X-Build` header with the commit the package was built
+from (`curl -sI <address> | grep -i x-build`). If a page is empty, set
+`SHOW_ERRORS` to `1` in `config.php`, read the error, and turn it off again.
+
 ## Settings
 
 | Name                 | Meaning                                                                 |
@@ -62,6 +68,7 @@ RedirectMatch 301 ^/$ https://example.com/
 | `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Database connection                           |
 | `DEMO_MODE`          | `1` for a public demonstration (see below)                              |
 | `DEMO_RESET_MINUTES` | How old the last reset must be before the next one; default 60          |
+| `SHOW_ERRORS`        | `1` only while setting up: a fatal error is printed instead of an empty page |
 | `DEMO_LOGIN_HINT`    | `username / password` shown on the login page with a "Compila" button   |
 
 ## Demo mode
