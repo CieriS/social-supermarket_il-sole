@@ -10,6 +10,7 @@ use PHPUnit\Framework\TestCase;
 use function IlSole\Config\isOn;
 use function IlSole\Config\resolve;
 use function IlSole\Demo\resetIsDue;
+use function IlSole\Demo\withoutTransactionControl;
 
 use const IlSole\Demo\FILES;
 use const IlSole\Demo\TABLES;
@@ -93,6 +94,29 @@ final class ConfigDemoTest extends TestCase
 
         foreach (['Membri', 'Punteggio', 'TesseraRilasciata', 'StoricoTessere', 'ValutazioneGriglia'] as $child) {
             self::assertLessThan($applicants, array_search($child, TABLES, true), $child);
+        }
+    }
+
+    public function testTheFilesOfAResetCannotEndItsTransaction(): void
+    {
+        $sql = "SET NAMES utf8mb4;\nSTART TRANSACTION;\n\nINSERT INTO `Stallo` (`nMesiStallo`) VALUES\n(12);\n  commit ;\nBEGIN;\n";
+
+        $clean = withoutTransactionControl($sql);
+
+        self::assertStringNotContainsStringIgnoringCase('START TRANSACTION', $clean);
+        self::assertStringNotContainsStringIgnoringCase('commit', $clean);
+        self::assertStringNotContainsStringIgnoringCase('begin', $clean);
+        self::assertStringContainsString("SET NAMES utf8mb4;", $clean);
+        self::assertStringContainsString("INSERT INTO `Stallo` (`nMesiStallo`) VALUES\n(12);", $clean);
+    }
+
+    public function testTheDemoFilesAreLeftWithTheirRowsOnly(): void
+    {
+        foreach (FILES as $file) {
+            $clean = withoutTransactionControl(file_get_contents(__DIR__ . "/../db/$file"));
+
+            self::assertDoesNotMatchRegularExpression('/^\s*(START TRANSACTION|COMMIT)\b/mi', $clean, $file);
+            self::assertStringContainsString('INSERT INTO', $clean, $file);
         }
     }
 }

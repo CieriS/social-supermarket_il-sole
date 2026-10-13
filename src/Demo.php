@@ -35,29 +35,53 @@ function lastReset(mysqli $db): ?int
     return $row === null || $row[0] === null ? null : (int) $row[0];
 }
 
-/* Empties the data and configuration tables and loads the files of $directory again */
+/* Pure: a file of db/ without the statements that would end the transaction of the reset */
+function withoutTransactionControl(string $sql): string
+{
+    return preg_replace('/^\s*(START TRANSACTION|BEGIN|COMMIT)\s*;\s*$/mi', '', $sql);
+}
+
+/*
+    Empties the data and configuration tables and loads the files of
+    $directory again, in one transaction: if anything fails the data stays as
+    it was and the error is thrown.
+*/
 function resetData(mysqli $db, string $directory, int $now): void
 {
-    $sql = "SET FOREIGN_KEY_CHECKS = 0;\n";
+    $sql = "SET FOREIGN_KEY_CHECKS = 0;\nSTART TRANSACTION;\n";
     foreach (TABLES as $table) {
         $sql .= "DELETE FROM `$table`;\n";
     }
-    $sql .= "SET FOREIGN_KEY_CHECKS = 1;\n";
     foreach (FILES as $file) {
         $content = @file_get_contents("$directory/$file");
         if ($content === false) {
-            throw new RuntimeException("Demo data file missing: $file");
+            throw new RuntimeException("File dei dati dimostrativi mancante: db/$file");
         }
-        $sql .= $content . "\n";
+        $sql .= withoutTransactionControl($content) . "\n";
     }
-    $sql .= "DELETE FROM `StatoDemo`;\nINSERT INTO `StatoDemo` (`UltimoRipristino`) VALUES ($now);\n";
+    $sql .= "DELETE FROM `StatoDemo`;\nINSERT INTO `StatoDemo` (`UltimoRipristino`) VALUES ($now);\nCOMMIT;\n";
 
-    $db->multi_query($sql);
-    do {
-        if ($result = $db->store_result()) {
-            $result->free();
+    try {
+        $db->multi_query($sql);
+        do {
+            if ($result = $db->store_result()) {
+                $result->free();
+            }
+        } while ($db->more_results() && $db->next_result());
+    } catch (\mysqli_sql_exception $error) {
+        /* The statements after the failed one are not run: undo the ones before it */
+        while ($db->more_results()) {
+            try {
+                $db->next_result();
+            } catch (\mysqli_sql_exception) {
+                break;
+            }
         }
-    } while ($db->more_results() && $db->next_result());
+        $db->query('ROLLBACK');
+        $db->query('SET FOREIGN_KEY_CHECKS = 1');
+        throw $error;
+    }
+    $db->query('SET FOREIGN_KEY_CHECKS = 1');
 }
 
 /* Called when the login page is opened: at most one reset per interval */

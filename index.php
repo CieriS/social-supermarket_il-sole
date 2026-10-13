@@ -16,7 +16,12 @@
     if ( \IlSole\Config\demoMode() && $_SERVER['REQUEST_METHOD'] === 'GET' ) {
         require __DIR__ . '/src/Demo.php';
         $Minuti = max(1, (int) \IlSole\Config\setting('DEMO_RESET_MINUTES', '60'));
-        \IlSole\Demo\resetIfDue($connection, __DIR__ . '/db', time(), $Minuti * 60);
+        try {
+            \IlSole\Demo\resetIfDue($connection, __DIR__ . '/db', time(), $Minuti * 60);
+        } catch ( Throwable $ErroreRipristino ) {
+            /* The demo stays usable with the data it has; the reason is shown under the form */
+            $AvvisoRipristino = "Ripristino dei dati dimostrativi non riuscito: ".$ErroreRipristino->getMessage();
+        }
     }
 
     $Errore = null;
@@ -168,6 +173,9 @@
                             </Div>
 
 
+            <?php if ( isset($AvvisoRipristino) ) { ?>
+                <p Class="Avviso Errore" style="bottom: 14vh;"><?php echo e($AvvisoRipristino); ?></p>
+            <?php } ?>
             <?php if ( $Errore !== null ) { ?>
                 <p Class="Avviso Errore"><?php echo e($Errore); ?></p>
             <?php } ?>
