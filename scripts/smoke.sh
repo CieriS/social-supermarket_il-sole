@@ -4,7 +4,8 @@
 # application (with mistakes, then right, then twice), changes a rule of the
 # grid in the configuration, submits an update, runs a shopping card through
 # its life and removes the applicant, checking what ends up in the database
-# each time. Along the way it tries a few forged requests.
+# each time. Along the way it tries a few forged requests, and at the end it
+# checks the demo mode: fixed credentials, no mail, data restored.
 # PHP warnings are reported but tolerated unless STRICT=1.
 set -euo pipefail
 
@@ -32,6 +33,20 @@ for page in List.php Config.php Grad_Export.php ModuloDomanda.php; do
     [ "$code" = 302 ] && [ ! -s "$tmp/body" ] || status="FAIL $page answered $code without a login"
 done
 report "pages without a login" "$status"
+
+# Code, database files, settings and the repository are not served.
+status=ok
+for file in db/01-schema.sql db/03-demo-data.sql .git/HEAD .gitignore .htaccess src/Auth.php vendor/autoload.php \
+    tests/bootstrap.php scripts/smoke.sh composer.json docker-compose.yml Dockerfile justfile README.md \
+    config.example.php FileInclude/FileRequired/Connessione.php docs/griglia-valutazione.pdf; do
+    code="$(curl -sS -o /dev/null -w '%{http_code}' "$base/$file")"
+    case "$code" in 403 | 404) ;; *) status="FAIL $file answered $code" ;; esac
+done
+for file in FileInclude/CascadingStyleSheet/LoginStyle.css FileInclude/immagini/Intestazione.svg FileInclude/Javascript/JavaScript.js; do
+    code="$(curl -sS -o /dev/null -w '%{http_code}' "$base/$file")"
+    [ "$code" = 200 ] || status="FAIL asset $file answered $code"
+done
+report "internal files are not served" "$status"
 
 # form_token <page>: the token every form of the session carries. It changes
 # when the session does: at login, and when a closed page is asked for.
@@ -294,6 +309,26 @@ grep -q 'Graduatoria ricalcolata' "$tmp/body" || status="FAIL no confirmation"
 [ "$(sql "$others")" = "$before" ] || status="FAIL demo scores moved from '$before' to '$(sql "$others")'"
 report "recalculation leaves right scores alone" "$status"
 
+# Demo mode: the credentials cannot be changed and no mail leaves.
+hash_before="$(sql 'SELECT CONCAT(Username, Password) FROM Administrator')"
+curl -sS -b "$tmp/jar" -o "$tmp/form" "$base/FileToBeExecuted/Config.php"
+args=()
+while IFS= read -r field; do
+    case "${field%%=*}" in Psw | ConfirmPsw) field="${field%%=*}=AnotherPassword1" ;; Username) field='Username=intruder' ;; esac
+    args+=(--data-urlencode "$field")
+done < <(perl -ne 'while (/<input[^>]*\bname=\x27([^\x27]+)\x27[^>]*>/g) { $tag = $&; $name = $1; $value = $tag =~ /\bvalue=\x27([^\x27]*)\x27/ ? $1 : ""; print "$name=$value\n" unless $name =~ /Aggiorna|Ricalcola/ }' "$tmp/form")
+curl -sS -b "$tmp/jar" -o "$tmp/body" "${args[@]}" "$base/FileToBeExecuted/Config.php"
+status=ok
+[ "$(sql 'SELECT CONCAT(Username, Password) FROM Administrator')" = "$hash_before" ] || status="FAIL credentials changed in demo mode"
+no_php_error
+report "demo: credentials stay as they are" "$status"
+
+status=ok
+post SendMail.php 'Destinatario=nobody@example.com' 'Oggetto=Prova' 'Messaggio=Prova' invia=invia
+grep -q 'DEMO: nessuna mail viene spedita davvero' "$tmp/body" || status="FAIL no demo notice after sending"
+no_php_error
+report "demo: mail is not sent" "$status"
+
 # Shopping cards: add one, assign it, look at the applicant, withdraw it, delete it.
 card=SMOKECARD001
 status=ok
@@ -357,5 +392,20 @@ post StrikeOut.php "Cod_Fiscale=$tax_code" Elimina=Elimina
 [ "$(sql "SELECT COUNT(*) FROM Membri WHERE CodFamiglia='$tax_code'")" = 0 ] || status="FAIL members left behind"
 no_php_error
 report "applicant removed" "$status"
+
+# Demo mode: when the last reset is old, opening the login page puts data and
+# configuration back as they are in db/.
+sql "UPDATE Stallo SET nMesiStallo=3;
+     UPDATE RegolePunteggio SET Punti=99 WHERE Chiave='debt_seizure';
+     DELETE FROM Richiedente LIMIT 5;
+     INSERT INTO Tessera (Codice) VALUES ('SMOKECARD002');
+     UPDATE StatoDemo SET UltimoRipristino=1"
+curl -sS -o /dev/null "$base/index.php"
+status=ok
+stored="$(sql "SELECT CONCAT_WS(' ', (SELECT nMesiStallo FROM Stallo), (SELECT Punti FROM RegolePunteggio WHERE Chiave='debt_seizure'), (SELECT COUNT(*) FROM Richiedente), (SELECT COUNT(*) FROM Punteggio), (SELECT COUNT(*) FROM Tessera), (SELECT COUNT(*) FROM TesseraRilasciata), (SELECT COUNT(*) FROM Administrator), (SELECT COUNT(*) FROM StatoDemo WHERE UltimoRipristino > UNIX_TIMESTAMP() - 60))")"
+[ "$stored" = '12 5 20 20 12 6 1 1' ] || status="FAIL after the reset '$stored', expected '12 5 20 20 12 6 1 1'"
+curl -sS -o /dev/null "$base/index.php"
+[ "$(sql 'SELECT COUNT(*) FROM StatoDemo')" = 1 ] || status="FAIL reset state has more than one row"
+report "demo: data restored when the reset is due" "$status"
 
 exit "$failed"

@@ -12,6 +12,10 @@ services:
       DB_USER: root
       DB_PASSWORD: dev
       DB_NAME: EmporioSolidale
+      # Demo mode: no real mail, fixed credentials, data in db/ loaded again
+      # when the login page is opened and the last time was over an hour ago.
+      DEMO_MODE: "1"
+      DEMO_RESET_MINUTES: "60"
       # Shown on the login page: the account of the demo data in db/.
       DEMO_LOGIN_HINT: emporiosolidale / IlSole
     depends_on:

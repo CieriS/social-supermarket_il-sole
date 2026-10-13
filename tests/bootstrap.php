@@ -12,3 +12,5 @@ require __DIR__ . '/../src/ApplicationRecord.php';
 require __DIR__ . '/../src/Auth.php';
 require __DIR__ . '/../src/Input.php';
 require __DIR__ . '/../src/Export.php';
+require __DIR__ . '/../src/Config.php';
+require __DIR__ . '/../src/Demo.php';

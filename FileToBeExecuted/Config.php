@@ -51,7 +51,10 @@
                         $NuovaPsw=(string) ($_POST['Psw'] ?? '');
                         $Username=strtolower(trim((string) ($_POST['Username'] ?? '')));
                         $ErroreCredenziali=null;
-                        if( $NuovaPsw !== '' || ($_POST['ConfirmPsw'] ?? '') !== '' ) {
+                        if( \IlSole\Config\demoMode() ) {
+                            /* Nella demo le credenziali restano quelle mostrate al login */
+                            $NuovaPsw='';
+                        } elseif( $NuovaPsw !== '' || ($_POST['ConfirmPsw'] ?? '') !== '' ) {
                             if( $NuovaPsw !== ($_POST['ConfirmPsw'] ?? '') ) {
                                 $ErroreCredenziali="Le password non corrispondono";
                             } elseif( strlen($NuovaPsw) < 8 ) {
@@ -202,7 +205,7 @@
 
                         /*———— Cambia Credenziali ————*/
                         echo "<tr><th Class='LightBlue' colspan='3'>Cambia Username e Password</th></tr>";
-                        echo "<tr><th Class='Orangino' colspan='3'>Nuovo Username e password (se l'username cambia deve essere cambiata anche la password)</th></tr>";
+                        echo "<tr><th Class='Orangino' colspan='3'>".( \IlSole\Config\demoMode() ? "Nella versione dimostrativa le credenziali non si possono cambiare" : "Nuovo Username e password (se l'username cambia deve essere cambiata anche la password)" )."</th></tr>";
 
                         echo "<tr title='Se cambia l'username vanno inserite anche le password, altrimenti le credenziali non verranno aggiornate.'><th colspan='3'><input minlength='4' maxlength='15' type='text' name='Username' placeholder='Username' value='".\IlSole\Html\e($UsPsw['Username'])."' required/></th></tr>
                         <tr title='Se cambia l'username vanno inserite anche le password, altrimenti le credenziali non verranno aggiornate.'><th colspan='3'><input minlength='8' maxlength='72' type='password' name='Psw' placeholder='Password' autocomplete='new-password' /><input minlength='8' maxlength='72' type='password' name='ConfirmPsw' placeholder='Conferma Password' autocomplete='new-password'/></th></tr>";

@@ -9,3 +9,6 @@ istruzioni/
 # Development dependencies and caches
 vendor/
 .phpunit.cache/
+
+# Settings of an installation without environment variables (see config.example.php)
+/config.php

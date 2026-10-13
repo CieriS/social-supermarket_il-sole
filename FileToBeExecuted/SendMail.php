@@ -17,6 +17,7 @@
             /* FILE INCLUSI DI DEFAULT RISPETTIVAMENTE Connessione al Database, Navbar e Footer, Funzioni php */
                 require('../FileInclude/FileRequired/Connessione.php');
                 require('../FileInclude/FileRequired/NavBars.php');
+                require(__DIR__ . '/../src/Mail.php');
             /*————*/
 
             /* Mailing */
@@ -62,12 +63,12 @@
                 if ( $Destinatario == 'Tutti' ) {
 
                     while ( $riga=mysqli_fetch_array($risultatoMail,MYSQLI_ASSOC) ) {
-                        mail( $riga['Mail'], $Oggetto, $Messaggio, $headers/*, $Parameters */ );
+                        \IlSole\Mail\send($riga['Mail'], $Oggetto, $Messaggio, $headers);
                     }
 
                     ?>
                         <script>
-                            alert("Mail inviata a tutte le famiglie.\n<?php echo "inviata a: " . $nMail . " persone"; ?>");
+                            alert("<?php echo \IlSole\Config\demoMode() ? "DEMO: nessuna mail viene spedita davvero.\n" : ""; ?>Mail inviata a tutte le famiglie.\n<?php echo "inviata a: " . $nMail . " persone"; ?>");
                             window.location.replace("List.php");
                         </script>
                     <?php
@@ -75,12 +76,12 @@
                 } else if ( $Destinatario == 'TuttiRestituzione' ) {
 
                     while ( $riga=mysqli_fetch_array($risultatoMailResti,MYSQLI_ASSOC) ) {
-                    mail( $riga['Mail'], $Oggetto, $Messaggio, $headers/*, $Parameters */ );
+                    \IlSole\Mail\send($riga['Mail'], $Oggetto, $Messaggio, $headers);
                     }
 
                     ?>
                         <script>
-                            alert("Mail inviata a tutte le famiglie con imminente restituzione di tessera o che devono restituire la tessera.\n<?php echo "inviata a: " . $nMailResti . " persone"; ?>");
+                            alert("<?php echo \IlSole\Config\demoMode() ? "DEMO: nessuna mail viene spedita davvero.\n" : ""; ?>Mail inviata a tutte le famiglie con imminente restituzione di tessera o che devono restituire la tessera.\n<?php echo "inviata a: " . $nMailResti . " persone"; ?>");
                             window.location.replace("List.php");
                         </script>
                     <?php
@@ -88,12 +89,12 @@
                 } else if ( $Destinatario == 'TuttiStallo' ) {
 
                     while ( $riga=mysqli_fetch_array($risultatoMailStallo,MYSQLI_ASSOC) ) {
-                    mail( $riga['Mail'], $Oggetto, $Messaggio, $headers/*, $Parameters */ );
+                    \IlSole\Mail\send($riga['Mail'], $Oggetto, $Messaggio, $headers);
                     }
 
                     ?>
                         <script>
-                            alert("Mail inviata a tutte le famiglie il cui periodo di stallo è terminato o sta per terminare.\n<?php echo "inviata a: " . $nMailStallo . " persone"; ?>");
+                            alert("<?php echo \IlSole\Config\demoMode() ? "DEMO: nessuna mail viene spedita davvero.\n" : ""; ?>Mail inviata a tutte le famiglie il cui periodo di stallo è terminato o sta per terminare.\n<?php echo "inviata a: " . $nMailStallo . " persone"; ?>");
                             window.location.replace("List.php");
                         </script>
                     <?php
@@ -107,11 +108,11 @@
                     <?php
                 } else {
 
-                    mail( $Destinatario, $Oggetto, $Messaggio, $headers/*, $Parameters */ );
+                    \IlSole\Mail\send($Destinatario, $Oggetto, $Messaggio, $headers);
 
                     ?>
                         <script>
-                            alert("Mail inviata a <?php echo $Destinatario; ?>");
+                            alert("<?php echo \IlSole\Config\demoMode() ? "DEMO: nessuna mail viene spedita davvero.\n" : ""; ?>Mail inviata a <?php echo $Destinatario; ?>");
                             window.location.replace("List.php");
                         </script>
                     <?php

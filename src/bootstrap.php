@@ -7,6 +7,7 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/Config.php';
 require_once __DIR__ . '/Html.php';
 require_once __DIR__ . '/Input.php';
 require_once __DIR__ . '/Auth.php';
