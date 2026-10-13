@@ -12,6 +12,10 @@ services:
       DB_USER: root
       DB_PASSWORD: dev
       DB_NAME: EmporioSolidale
+      # Demo mode: no real mail, fixed credentials, data in db/ loaded again
+      # when the login page is opened and the last time was over an hour ago.
+      DEMO_MODE: "1"
+      DEMO_RESET_MINUTES: "60"
       # Shown on the login page: the account of the demo data in db/.
       DEMO_LOGIN_HINT: emporiosolidale / IlSole
     depends_on:
@@ -19,14 +23,17 @@ services:
         condition: service_healthy
 
   db:
-    image: mariadb:11
+    # MySQL 8.0, as on the host the demo is deployed to.
+    image: mysql:8.0
     environment:
-      MARIADB_ROOT_PASSWORD: dev
-      MARIADB_DATABASE: EmporioSolidale
+      MYSQL_ROOT_PASSWORD: dev
+      MYSQL_DATABASE: EmporioSolidale
     volumes:
       - ./db:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      # Over TCP, so it only passes once the files in db/ have been loaded:
+      # while they are, the server listens on its socket alone.
+      test: ["CMD-SHELL", "mysql -h127.0.0.1 -uroot -pdev -e 'SELECT 1 FROM EmporioSolidale.StatoDemo LIMIT 1'"]
       interval: 5s
       timeout: 5s
-      retries: 20
+      retries: 30

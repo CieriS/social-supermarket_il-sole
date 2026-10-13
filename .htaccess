@@ -1,0 +1,9 @@
+# Only the pages and their assets are meant for the browser. Everything else
+# (code, database files, tests, settings, repository) answers "not found".
+# The patterns do not assume the web root, so the application can also live
+# in a folder of a site.
+RedirectMatch 404 /\.(?!well-known/)
+RedirectMatch 404 /(?:src|db|tests|scripts|vendor|docker|docs|dist|FileInclude/FileRequired)(?:/|$)
+RedirectMatch 404 /(?:config(?:\.example)?\.php|composer\.(?:json|lock)|phpunit\.xml|docker-compose\.yml|Dockerfile|justfile|[^/]+\.md)$
+
+Options -Indexes

@@ -29,9 +29,13 @@ install: up
 test:
     docker compose exec -T web vendor/bin/phpunit
 
-# Regenerate db/02-demo-data.sql from scripts/generate-demo-data.php
+# Regenerate db/03-demo-data.sql from scripts/generate-demo-data.php
 demo-data:
-    docker compose exec -T web php scripts/generate-demo-data.php > db/02-demo-data.sql
+    docker compose exec -T web php scripts/generate-demo-data.php > db/03-demo-data.sql
+
+# Build dist/: the files to upload to a host and the database files to import
+package:
+    ./scripts/package.sh
 
 # Syntax-check every PHP file
 lint:

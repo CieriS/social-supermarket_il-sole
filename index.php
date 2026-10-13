@@ -12,6 +12,18 @@
         exit;
     }
 
+    /* Demo: whoever opens the login page finds the data as it was, at most once per interval */
+    if ( \IlSole\Config\demoMode() && $_SERVER['REQUEST_METHOD'] === 'GET' ) {
+        $Minuti = max(1, (int) \IlSole\Config\setting('DEMO_RESET_MINUTES', '60'));
+        try {
+            require __DIR__ . '/src/Demo.php';
+            \IlSole\Demo\resetIfDue($connection, __DIR__ . '/db', time(), $Minuti * 60);
+        } catch ( Throwable $ErroreRipristino ) {
+            /* The demo stays usable with the data it has; the reason is shown under the form */
+            $AvvisoRipristino = "Ripristino dei dati dimostrativi non riuscito: ".$ErroreRipristino->getMessage();
+        }
+    }
+
     $Errore = null;
     if ( $_SERVER['REQUEST_METHOD'] === 'POST' ) {
         $Indirizzo = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
@@ -32,7 +44,7 @@
     }
 
     /* The demo account, "username / password": when set, a button under the form fills it in */
-    $Demo = array_map('trim', explode('/', (string) getenv('DEMO_LOGIN_HINT'), 2));
+    $Demo = array_map('trim', explode('/', \IlSole\Config\setting('DEMO_LOGIN_HINT'), 2));
     $Demo = count($Demo) === 2 && $Demo[0] !== '' && $Demo[1] !== '' ? $Demo : null;
 
 ?>
@@ -161,6 +173,9 @@
                             </Div>
 
 
+            <?php if ( isset($AvvisoRipristino) ) { ?>
+                <p Class="Avviso Errore" style="bottom: 14vh;"><?php echo e($AvvisoRipristino); ?></p>
+            <?php } ?>
             <?php if ( $Errore !== null ) { ?>
                 <p Class="Avviso Errore"><?php echo e($Errore); ?></p>
             <?php } ?>
