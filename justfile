@@ -33,6 +33,10 @@ test:
 demo-data:
     docker compose exec -T web php scripts/generate-demo-data.php > db/03-demo-data.sql
 
+# Build dist/: the files to upload to a host and the database files to import
+package:
+    ./scripts/package.sh
+
 # Syntax-check every PHP file
 lint:
     docker compose run --rm --no-deps web sh -c 'find . -name "*.php" -not -path "./vendor/*" -print0 | xargs -0 -n1 php -l > /dev/null'

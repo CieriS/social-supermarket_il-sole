@@ -20,7 +20,7 @@ spirit. All the data in the repository is invented.
 
 ## Stack
 
-PHP 8.5 on Apache, MariaDB 11, plain HTML/CSS/JavaScript. Docker Compose for
+PHP 8.5 on Apache, MySQL 8.0, plain HTML/CSS/JavaScript. Docker Compose for
 local development.
 
 ## Running it
@@ -37,6 +37,7 @@ Requires Docker and [just](https://github.com/casey/just).
 | `just test`     | Unit tests of the scoring rules                        |
 | `just check`    | Syntax check, unit tests and smoke test                |
 | `just demo-data` | Regenerate the demo data from its script              |
+| `just package`  | Build `dist/`: what to upload to a host                |
 
 The demo account is `emporiosolidale` / `IlSole` (capital i, lower-case L). The
 login page shows it, with a button that fills it in. The stack runs in demo

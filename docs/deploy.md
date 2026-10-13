@@ -1,9 +1,13 @@
 # Deploying the demo
 
 The application needs PHP 8.2 or later with the `mysqli` and `mbstring`
-extensions, Apache (it relies on `.htaccess`) and a MySQL or MariaDB database.
-Nothing has to be built and nothing is installed with Composer: PHPUnit is for
-development only.
+extensions, Apache (it relies on `.htaccess`) and a MySQL 8 or MariaDB
+database. Nothing has to be built and nothing is installed with Composer:
+PHPUnit is for development only. The development stack and the CI run on
+MySQL 8.0.
+
+`just package` puts in `dist/` exactly what is described below: a zip with the
+files for the host and a folder with the database files to import.
 
 ## What goes on the host
 
@@ -20,7 +24,9 @@ from being served.
 
 ## Steps
 
-1. **Database**: create an empty database and import, in this order,
+1. **Database**: use an empty database (if it holds tables of an older
+   version, export and drop them first: the import does not overwrite) and
+   import, in this order,
    `db/01-schema.sql`, `db/02-configuration.sql`, `db/03-demo-data.sql`
    (phpMyAdmin: *Import*, one file at a time).
 2. **Files**: upload the files above to the web root.

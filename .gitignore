@@ -12,3 +12,6 @@ vendor/
 
 # Settings of an installation without environment variables (see config.example.php)
 /config.php
+
+# Output of `just package`
+/dist/
