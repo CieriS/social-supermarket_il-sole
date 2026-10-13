@@ -1,6 +1,6 @@
 # Deploying the demo
 
-The application needs PHP 8.3 or later with the `mysqli` and `mbstring`
+The application needs PHP 8.2 or later with the `mysqli` and `mbstring`
 extensions, Apache (it relies on `.htaccess`) and a MySQL or MariaDB database.
 Nothing has to be built and nothing is installed with Composer: PHPUnit is for
 development only.
@@ -34,6 +34,20 @@ Then, from another browser, make sure these answer "not found":
 `/config.php`, `/db/01-schema.sql`, `/src/Auth.php`, `/.htaccess`.
 If they do not, the host is ignoring `.htaccess` and the site must not stay
 online like that.
+
+## In a folder of an existing site
+
+The application does not have to be at the web root: upload it to a folder
+(for example `il-sole/`) and open that address. Its links are relative and
+`.htaccess` protects the files wherever the folder is.
+
+If the site redirects every address somewhere else, the folder is redirected
+too. The redirect has to be narrowed to the home page only, for example in the
+`.htaccess` of the web root:
+
+```apache
+RedirectMatch 301 ^/$ https://example.com/
+```
 
 ## Settings
 
