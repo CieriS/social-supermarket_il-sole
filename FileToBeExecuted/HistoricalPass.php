@@ -18,7 +18,7 @@
             /*————*/
 
             /*  */
-                $selectStoricoTessere="SELECT * FROM StoricoTes;";
+                $selectStoricoTessere="SELECT * FROM ".\IlSole\Views\from('StoricoTes').";";
                 $risultatoStoricoTessere=mysqli_query($connection,$selectStoricoTessere) OR DIE($connection);
             /*————*/
 

@@ -5,7 +5,7 @@
     require('../FileInclude/FileRequired/Connessione.php');
 
 
-    $query="SELECT * FROM Export;";
+    $query="SELECT * FROM ".\IlSole\Views\from('Export').";";
     /* SELECT R.Cod_Fiscale, R.Cognome, R.Nome, R.Cittadinanza, R.LuogoNascita, R.DataNascita, R.TipoAlloggio, R.Residenza, R.Via, R.nMembri, R.Telefono, R.Mail, P.PunteggioISEE, P.PunteggioPresenzaMinori, P.PunteggioDisoccupazione, P.PunteggioInvalidi, P.PunteggioSituazioneDebitoria, P.PunteggioBenefit, P.PunteggioTotale, TR.CodiceTessera, DATE_FORMAT(TR.DataOraRilascioTessera, '%d/%m/%Y') AS DataOraRilascioTessera, DATE_FORMAT(TR.DataOraScadenzaTessera, '%d/%m/%Y') AS DataOraScadenzaTessera, DATE_FORMAT(R.DataOraRitiroTessera, '%d/%m/%Y') AS DataOraRitiroTessera, DATE_FORMAT(R.DataOraStalloTessera, '%d/%m/%Y') AS DataOraStalloTessera 
     FROM Richiedente AS R LEFT OUTER JOIN TesseraRilasciata AS TR 
     ON R.Cod_Fiscale = TR.CodFamiglia 

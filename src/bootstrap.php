@@ -30,6 +30,7 @@ if (\IlSole\Config\isOn(\IlSole\Config\setting('SHOW_ERRORS'))) {
 }
 
 require_once __DIR__ . '/Html.php';
+require_once __DIR__ . '/Views.php';
 require_once __DIR__ . '/Input.php';
 require_once __DIR__ . '/Auth.php';
 require __DIR__ . '/../FileInclude/FileRequired/Connessione.php';

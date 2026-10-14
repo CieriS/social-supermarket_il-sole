@@ -58,7 +58,7 @@
                         <?php
 
                             /* SELECT DELLA GRADUATORIA ORDINATA PER IL PUNTEGGIO TOTALE DAL MAGGIORE AL MINORE */
-                                $query="SELECT * FROM Graduatoria;";
+                                $query="SELECT * FROM ".\IlSole\Views\from('Graduatoria').";";
                                 $queryParametri=[];
                                 /* SELECT R.Cod_Fiscale, R.Cognome, R.Nome, R.nMembri, R.Telefono, R.Mail, P.PunteggioISEE, P.PunteggioPresenzaMinori, P.PunteggioDisoccupazione, P.PunteggioInvalidi, P.PunteggioSituazioneDebitoria, P.PunteggioBenefit, P.PunteggioTotale, TR.CodiceTessera, DATE_FORMAT(TR.DataOraRilascioTessera, '%d/%m/%Y') AS DataOraRilascioTessera, DATE_FORMAT(TR.DataOraScadenzaTessera, '%d/%m/%Y') AS DataOraScadenzaTessera, DATE_FORMAT(R.DataOraRitiroTessera, '%d/%m/%Y') AS DataOraRitiroTessera, DATE_FORMAT(R.DataOraStalloTessera, '%d/%m/%Y') AS DataOraStalloTessera  
                                 FROM Richiedente AS R LEFT OUTER JOIN TesseraRilasciata AS TR 

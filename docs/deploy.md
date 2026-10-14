@@ -24,22 +24,23 @@ from being served.
 
 ## Steps
 
-1. **Database**: use an empty database (if it holds tables of an older
-   version, export and drop them first: the import does not overwrite) and
-   import, in this order,
-   `db/01-schema.sql`, `db/02-configuration.sql`, `db/03-demo-data.sql`
-   (phpMyAdmin: *Import*, one file at a time).
-2. **Files**: upload the files above to the web root.
+1. **Database**: an empty database. If it holds tables of an older version,
+   export and drop them first: tables that already exist are left as they
+   are, and old ones may lack keys the application relies on.
+2. **Files**: upload the files above (for example with `just package` and the
+   host's "upload an archive" page, which extracts the zip).
 3. **Settings**: copy `config.example.php` to `config.php` next to `index.php`
    and fill in the database host, user, password and name. On a host that has
    environment variables, set those instead: they win over the file.
-4. **Check**: open the site. The login page shows the demo account and a
-   button that fills it in.
+4. **Open the site.** In demo mode the first visit to the login page creates
+   the tables and loads configuration and demo data: nothing has to be
+   imported by hand. Without demo mode, import `db/01-schema.sql` and
+   `db/02-configuration.sql` (phpMyAdmin: select the database first, then
+   *Import*).
 
-Then, from another browser, make sure these answer "not found":
-`/config.php`, `/db/01-schema.sql`, `/src/Auth.php`, `/.htaccess`.
-If they do not, the host is ignoring `.htaccess` and the site must not stay
-online like that.
+The schema has no views: some hosts (Altervista among them) refuse
+`CREATE VIEW`. The queries that used to read views select from the tables
+(`src/Views.php`).
 
 ## In a folder of an existing site
 

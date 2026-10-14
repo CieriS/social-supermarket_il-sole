@@ -12,8 +12,9 @@ mkdir -p "dist/$folder/db" dist/database
 
 cp index.php home.html .htaccess config.example.php "dist/$folder/"
 cp -R FileToBeExecuted FileInclude src "dist/$folder/"
-# Demo mode loads these two again when it restores the data.
-cp db/02-configuration.sql db/03-demo-data.sql "dist/$folder/db/"
+# Demo mode creates the tables from the schema on an empty database and
+# loads the other two again when it restores the data.
+cp db/01-schema.sql db/02-configuration.sql db/03-demo-data.sql "dist/$folder/db/"
 # To import by hand, in this order, when the database is created.
 cp db/01-schema.sql db/02-configuration.sql db/03-demo-data.sql dist/database/
 

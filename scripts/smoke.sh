@@ -408,4 +408,17 @@ curl -sS -o /dev/null "$base/index.php"
 [ "$(sql 'SELECT COUNT(*) FROM StatoDemo')" = 1 ] || status="FAIL reset state has more than one row"
 report "demo: data restored when the reset is due" "$status"
 
+# Demo mode on an empty database, as on a host where the files were uploaded
+# and nothing imported: opening the login page creates the tables and loads
+# configuration and demo data.
+tables="$(sql "SELECT GROUP_CONCAT(CONCAT('\`', TABLE_NAME, '\`')) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()")"
+sql "SET FOREIGN_KEY_CHECKS = 0; DROP TABLE $tables; SET FOREIGN_KEY_CHECKS = 1"
+code="$(curl -sS -o "$tmp/body" -w '%{http_code}' "$base/index.php")"
+status=ok
+[ "$code" = 200 ] || status="FAIL login page answered $code on an empty database"
+grep -q 'Ripristino dei dati dimostrativi non riuscito' "$tmp/body" && status="FAIL $(grep -o 'Ripristino[^<]*' "$tmp/body" | head -1)"
+stored="$(sql "SELECT CONCAT_WS(' ', (SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()), (SELECT COUNT(*) FROM Richiedente), (SELECT COUNT(*) FROM RegolePunteggio), (SELECT COUNT(*) FROM Administrator))")"
+[ "$stored" = '22 20 24 1' ] || status="FAIL after the install '$stored', expected '22 20 24 1'"
+report "demo: installs itself on an empty database" "$status"
+
 exit "$failed"

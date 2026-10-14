@@ -21,7 +21,7 @@
                 /*————*/
 
                 /* Lista Richiedenti */
-                    $selectRichiedenti = "SELECT Cod_Fiscale, Nome, Cognome FROM Graduatoria ORDER BY Cognome, Nome ASC;";
+                    $selectRichiedenti = "SELECT Cod_Fiscale, Nome, Cognome FROM ".\IlSole\Views\from('Graduatoria')." ORDER BY Cognome, Nome ASC;";
 
                     $risultatoRichiedenti = mysqli_query($connection,$selectRichiedenti) OR DIE(mysqli_error($connection));
                 /*————*/
