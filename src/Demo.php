@@ -23,6 +23,9 @@ const TABLES = [
 /* Files that bring the rows back, in order */
 const FILES = ['02-configuration.sql', '03-demo-data.sql'];
 
+/* Creates the tables that are missing; tables that exist are left as they are */
+const SCHEMA = '01-schema.sql';
+
 /* Pure: a reset is due if there never was one or the last is older than the interval */
 function resetIsDue(?int $lastReset, int $now, int $intervalSeconds): bool
 {
@@ -82,6 +85,34 @@ function resetData(mysqli $db, string $directory, int $now): void
         throw $error;
     }
     $db->query('SET FOREIGN_KEY_CHECKS = 1');
+}
+
+/* Runs a file of statements, reading every result so the connection stays usable */
+function runScript(mysqli $db, string $sql): void
+{
+    $db->multi_query($sql);
+    do {
+        if ($result = $db->store_result()) {
+            $result->free();
+        }
+    } while ($db->more_results() && $db->next_result());
+}
+
+/*
+    On a fresh database (no StatoDemo table) creates the tables, so a demo can
+    be installed by uploading the files alone. Returns whether it did.
+*/
+function installSchemaIfMissing(mysqli $db, string $directory): bool
+{
+    if ($db->query("SHOW TABLES LIKE 'StatoDemo'")->num_rows > 0) {
+        return false;
+    }
+    $sql = @file_get_contents("$directory/" . SCHEMA);
+    if ($sql === false) {
+        throw new RuntimeException('File dello schema mancante: db/' . SCHEMA);
+    }
+    runScript($db, $sql);
+    return true;
 }
 
 /* Called when the login page is opened: at most one reset per interval */

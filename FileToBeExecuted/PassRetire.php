@@ -82,7 +82,7 @@
                         <?php
 
                             /* SELECT DELLA GRADUATORIA ORDINATA PER IL PUNTEGGIO TOTALE DAL MAGGIORE AL MINORE (SOLO DI QUELLI CHE NON HANNO LA TESSERA, E SE LA HANNO AVUTA, CHE SIA PASSATO ALMENO UN ANNO) */
-                                $query="SELECT * FROM Pass";
+                                $query="SELECT * FROM ".\IlSole\Views\from('Pass')."";
                                 /* SELECT R.Cod_Fiscale, R.Cognome, R.Nome, R.nMembri, P.PunteggioISEE, P.PunteggioPresenzaMinori, P.PunteggioDisoccupazione, P.PunteggioInvalidi, P.PunteggioSituazioneDebitoria, P.PunteggioBenefit, P.PunteggioTotale, TR.CodiceTessera, DATE_FORMAT(TR.DataOraRilascioTessera, '%d/%m/%Y') AS DataOraRilascioTessera, DATE_FORMAT(TR.DataOraScadenzaTessera, '%d/%m/%Y') AS DataOraScadenzaTessera, DATE_FORMAT(R.DataOraRitiroTessera, '%d/%m/%Y') AS DataOraRitiroTessera, DATE_FORMAT(R.DataOraStalloTessera, '%d/%m/%Y') AS DataOraStalloTessera  
                                 FROM Richiedente AS R LEFT OUTER JOIN TesseraRilasciata AS TR 
                                 ON R.Cod_Fiscale = TR.CodFamiglia 

@@ -35,7 +35,7 @@
                         /* Select */
 
                             /* Select e Esecuzione Select Richiedente, Punteggio e tessere */
-                                $queryRichiedente="SELECT * FROM InformazioniRichiedente WHERE Cod_Fiscale = ?";
+                                $queryRichiedente="SELECT * FROM ".\IlSole\Views\from('InformazioniRichiedente')." WHERE Cod_Fiscale = ?";
                                 $queryRichiedenteParametri=[$Cod_Fiscale];
                                 /* SELECT R.Cod_Fiscale, R.Cognome, R.Nome, R.LuogoNascita, DATE_FORMAT(R.DataNascita, '%d/%m/%Y') AS DataNascita, R.Cittadinanza, R.InItaliaDallAnno, R.Residenza, R.Via, R.TipoAlloggio, R.DocumentoIdent, R.DocumentoImmig, R.Telefono, R.Mail, R.ServiziSociali, R.ComeHaConosciutoEmporio, R.nMembri, R.ISEE, TR.CodiceTessera, DATE_FORMAT(TR.DataOraRilascioTessera, '%d/%m/%Y') AS DataOraRilascioTessera, DATE_FORMAT(TR.DataOraScadenzaTessera, '%d/%m/%Y') AS DataOraScadenzaTessera, DATE_FORMAT(R.DataOraRitiroTessera, '%d/%m/%Y') AS DataOraRitiroTessera, DATE_FORMAT(R.DataOraStalloTessera, '%d/%m/%Y') AS DataOraStalloTessera, P.PunteggioISEE, P.PunteggioPresenzaMinori, P.PunteggioDisoccupazione, P.PunteggioInvalidi, P.PunteggioSituazioneDebitoria, P.PunteggioBenefit, P.PunteggioTotale 
                                 FROM Richiedente AS R LEFT OUTER JOIN TesseraRilasciata AS TR 
@@ -50,7 +50,7 @@
                             /*————*/
 
                             /* Select e Esecuzione Select Membri */
-                                $queryMembri="SELECT * FROM InformazioniMembri 
+                                $queryMembri="SELECT * FROM ".\IlSole\Views\from('InformazioniMembri')." 
                                 WHERE CodFamiglia = ?;";
                                 $queryMembriParametri=[$Cod_Fiscale];
                                 /* SELECT nMembro, NomeCognome, LuogoNascita, DATE_FORMAT(DataNascita, '%d/%m/%Y') AS DataNascita, Parentela, Occupazione, TitoloDiStudio, Competenze, ConoscenzaLingua, Patente, AttualeAtt, Presso, Termine, SenzaLavoroDa, CodFamiglia 
@@ -60,7 +60,7 @@
                             /*————*/
 
                             /* Select e Esecuzione Select Disponibilità Collaborative */
-                                $queryDisp="SELECT * FROM InformazioniDispColl 
+                                $queryDisp="SELECT * FROM ".\IlSole\Views\from('InformazioniDispColl')." 
                                 WHERE CodFamiglia = ?;";
                                 $queryDispParametri=[$Cod_Fiscale];
                                 /* SELECT AmbitoFormativo, AmbitoLavorativo, AmbitoSociale, CodFamiglia 
@@ -70,7 +70,7 @@
                             /*————*/
 
                             /* Select e Esecuzione Select Situazione Socio Sanitaria */
-                                $querySSS="SELECT * FROM InformazioniSSS  
+                                $querySSS="SELECT * FROM ".\IlSole\Views\from('InformazioniSSS')."  
                                 WHERE CodFamiglia = ?;";
                                 $querySSSParametri=[$Cod_Fiscale];
                                 /* SELECT N, Evento, Anno, DocAll, CodFamiglia 
@@ -432,7 +432,7 @@
                         <?php
 
                             /* SELECT DELLA GRADUATORIA ORDINATA PER IL PUNTEGGIO TOTALE DAL MAGGIORE AL MINORE */
-                                $query="SELECT * FROM Graduatoria";
+                                $query="SELECT * FROM ".\IlSole\Views\from('Graduatoria')."";
                             /*————*/
 
                             /* ESECUZIONE DELLA SELECT */

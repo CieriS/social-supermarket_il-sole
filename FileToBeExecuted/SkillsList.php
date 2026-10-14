@@ -25,7 +25,7 @@
             /* DB */
 
                 /* View Competenze */
-                    $queryCompetenze="SELECT * FROM CompetenzeView";
+                    $queryCompetenze="SELECT * FROM ".\IlSole\Views\from('CompetenzeView')."";
                     /* SELECT nMembro, NomeCognome, LuogoNascita, DATE_FORMAT(DataNascita, '%d/%m/%Y') AS DataNascita, Parentela, Occupazione, TitoloDiStudio, Competenze, ConoscenzaLingua, Patente, AttualeAtt, Presso, Termine, SenzaLavoroDa, CodFamiglia 
                     FROM Membri 
                     ORDER BY CodFamiglia, nMembro ASC; */

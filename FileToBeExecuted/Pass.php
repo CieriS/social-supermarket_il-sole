@@ -50,7 +50,7 @@
                             FROM Stallo"; 
 
                             $CalcoloDataStallo="SELECT * 
-                            FROM Confirmation 
+                            FROM ".\IlSole\Views\from('Confirmation')." 
                             WHERE Cod_Fiscale = ?;";
                             $CalcoloDataStalloParametri=[$CodiceFiscale];
                             /* SELECT R.Cod_Fiscale, R.Cognome, R.Nome, R.nMembri, P.PunteggioISEE, P.PunteggioPresenzaMinori, P.PunteggioDisoccupazione, P.PunteggioInvalidi, P.PunteggioSituazioneDebitoria, P.PunteggioBenefit, P.PunteggioTotale, TR.CodiceTessera, DATE_FORMAT(TR.DataOraRilascioTessera, '%Y/%m/%d') AS DataOraRilascioTessera, DATE_FORMAT(TR.DataOraScadenzaTessera, '%Y/%m/%d') AS DataOraScadenzaTessera, DATE_FORMAT(R.DataOraRitiroTessera, '%Y/%m/%d') AS DataOraRitiroTessera, DATE_FORMAT(R.DataOraStalloTessera, '%Y/%m/%d') AS DataOraStalloTessera  
@@ -75,7 +75,7 @@
                         /*————*/
 
                         /* Controllo che la tessera non sia già in uso o sia nel periodo si stallo */
-                            $controllo="SELECT * FROM Pass";
+                            $controllo="SELECT * FROM ".\IlSole\Views\from('Pass')."";
                             $Ris=mysqli_query($connection,$controllo) OR DIE(mysqli_error($connection));
                             $RisCF=mysqli_execute_query($connection,$CalcoloDataStallo,$CalcoloDataStalloParametri) OR DIE(mysqli_error($connection));
                             while( $riga=\IlSole\Html\escapeRow(mysqli_fetch_array($Ris,MYSQLI_ASSOC)) ){
@@ -174,7 +174,7 @@
                         <?php
 
                             /* SELECT DELLA GRADUATORIA ORDINATA PER IL PUNTEGGIO TOTALE DAL MAGGIORE AL MINORE (SOLO DI QUELLI CHE NON HANNO LA TESSERA, E SE LA HANNO AVUTA, CHE SIA PASSATO ALMENO UN ANNO) */
-                                $query="SELECT * FROM Pass";
+                                $query="SELECT * FROM ".\IlSole\Views\from('Pass')."";
                             /*————*/
 
                             /* SELECT DELLA GRADUATORIA ORDINATA PER IL PUNTEGGIO TOTALE DAL MAGGIORE AL MINORE (SOLO DI QUELLI CHE NON HANNO LA TESSERA, E SE LA HANNO AVUTA, CHE SIA PASSATO ALMENO UN ANNO) */

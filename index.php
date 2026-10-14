@@ -12,11 +12,13 @@
         exit;
     }
 
-    /* Demo: whoever opens the login page finds the data as it was, at most once per interval */
+    /* Demo: whoever opens the login page finds the data as it was, at most once per interval;
+       on an empty database the tables are created first */
     if ( \IlSole\Config\demoMode() && $_SERVER['REQUEST_METHOD'] === 'GET' ) {
         $Minuti = max(1, (int) \IlSole\Config\setting('DEMO_RESET_MINUTES', '60'));
         try {
             require __DIR__ . '/src/Demo.php';
+            \IlSole\Demo\installSchemaIfMissing($connection, __DIR__ . '/db');
             \IlSole\Demo\resetIfDue($connection, __DIR__ . '/db', time(), $Minuti * 60);
         } catch ( Throwable $ErroreRipristino ) {
             /* The demo stays usable with the data it has; the reason is shown under the form */
