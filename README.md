@@ -23,6 +23,14 @@ spirit. All the data in the repository is invented.
 PHP 8.5 on Apache, MySQL 8.0, plain HTML/CSS/JavaScript. Docker Compose for
 local development.
 
+The only libraries the pages load, jQuery and jQuery UI (for the date picker
+of the form), are copied in
+[FileInclude/third-party/](FileInclude/third-party/README.md) and served by
+the application itself. No page loads anything from another host, so a visit
+sends no data to third parties and the site's privacy policy has no external
+service to declare. A unit test fails if a page starts loading a file from a
+CDN again.
+
 ## Running it
 
 Requires Docker and [just](https://github.com/casey/just).
