@@ -22,6 +22,11 @@ Not needed there: `tests/`, `scripts/`, `docker/`, `docs/`, `vendor/`, the
 Docker and Composer files. If they are uploaded anyway, `.htaccess` keeps them
 from being served.
 
+The pages load nothing from other hosts: the JavaScript libraries are in
+`FileInclude/third-party/`. The only cookie is the PHP session, which is
+technical. A privacy policy of the hosting site therefore has no third-party
+service to list for the demo.
+
 ## Steps
 
 1. **Database**: an empty database. If it holds tables of an older version,

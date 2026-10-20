@@ -2,7 +2,7 @@
 <!doctype html>
 <html lang="it" ondragstart='return false' onselectstart='return false'>
     <head>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script src="../FileInclude/third-party/jquery-3.7.1/jquery.min.js"></script>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link href="../FileInclude/CascadingStyleSheet/ReportStyle.css" media="" rel="stylesheet" type="text/css">

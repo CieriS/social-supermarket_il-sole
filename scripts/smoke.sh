@@ -42,7 +42,9 @@ for file in db/01-schema.sql db/03-demo-data.sql .git/HEAD .gitignore .htaccess 
     code="$(curl -sS -o /dev/null -w '%{http_code}' "$base/$file")"
     case "$code" in 403 | 404) ;; *) status="FAIL $file answered $code" ;; esac
 done
-for file in FileInclude/CascadingStyleSheet/LoginStyle.css FileInclude/immagini/Intestazione.svg FileInclude/Javascript/JavaScript.js; do
+for file in FileInclude/CascadingStyleSheet/LoginStyle.css FileInclude/immagini/Intestazione.svg FileInclude/Javascript/JavaScript.js \
+    FileInclude/third-party/jquery-3.7.1/jquery.min.js FileInclude/third-party/jquery-ui-1.14.2/jquery-ui.min.css \
+    FileInclude/third-party/jquery-ui-1.14.2/images/ui-icons_444444_256x240.png; do
     code="$(curl -sS -o /dev/null -w '%{http_code}' "$base/$file")"
     [ "$code" = 200 ] || status="FAIL asset $file answered $code"
 done
